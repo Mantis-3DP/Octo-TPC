@@ -13,16 +13,25 @@ import octoprint.plugin
 
 class TpcPlugin(octoprint.plugin.SettingsPlugin,
                 octoprint.plugin.AssetPlugin,
+				octoprint.plugin.StartupPlugin,
                 octoprint.plugin.TemplatePlugin):
+
 
 	##~~ SettingsPlugin mixi
 	def on_after_startup(self):
-		self._logger.info("Hello World!")
+		self._logger.info("Tpc started! ")
+		self._logger.info("Hello World! (more: %s)" % self._settings.get(["url"]))
 
 	def get_settings_defaults(self):
 		return dict(
 			# put your plugin's default settings here
+		url="https://en.wikipedia.org/wiki/Hello_world",
+		nozzle_temp=180,
+		feed_rate=1200
 		)
+
+	def get_template_configs(self):
+		return [dict(type="settings", custom_bindings=False)]
 
 	##~~ AssetPlugin mixin
 
@@ -48,12 +57,12 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 
 				# version check: github repository
 				type="github_release",
-				user="you",
+				user="Mantis-3DP",
 				repo="OctoPrint-Tpc",
 				current=self._plugin_version,
 
 				# update method: pip
-				pip="https://github.com/you/OctoPrint-Tpc/archive/{target_version}.zip"
+				pip="https://github.com/Mantis-3DP/OctoPrint-Tpc/archive/{target_version}.zip"
 			)
 		)
 
@@ -67,7 +76,7 @@ __plugin_name__ = "Tpc Plugin"
 # Python 2. New plugins should make sure to run under both versions for now. Uncomment one of the following
 # compatibility flags according to what Python versions your plugin supports!
 #__plugin_pythoncompat__ = ">=2.7,<3" # only python 2
-#__plugin_pythoncompat__ = ">=3,<4" # only python 3
+__plugin_pythoncompat__ = ">=3,<4" # only python 3
 #__plugin_pythoncompat__ = ">=2.7,<4" # python 2 and 3
 
 def __plugin_load__():
