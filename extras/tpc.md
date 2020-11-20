@@ -11,9 +11,9 @@ license: AGPLv3
 # TODO
 date: today's date in format YYYY-MM-DD, e.g. 2015-04-21
 
-homepage: https://github.com/you/OctoPrint-Tpc
-source: https://github.com/you/OctoPrint-Tpc
-archive: https://github.com/you/OctoPrint-Tpc/archive/master.zip
+homepage: https://github.com/Mantis-3DP/OctoPrint-Tpc
+source: https://github.com/Mantis-3DP/OctoPrint-Tpc
+archive: https://github.com/Mantis-3DP/OctoPrint-Tpc/archive/master.zip
 
 # TODO
 # Set this to true if your plugin uses the dependency_links setup parameter to include

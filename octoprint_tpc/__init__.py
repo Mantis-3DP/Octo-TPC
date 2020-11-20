@@ -19,7 +19,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 
 	##~~ SettingsPlugin mixi
 	def on_after_startup(self):
-		self._logger.info("Tpc started for real! ")
+		self._logger.info("Tpc started! %s" % self._settings.get(["nozzle_temp"]))
 		self._logger.info("Hello World! (more: %s)" % self._settings.get(["url"]))
 
 	def get_settings_defaults(self):
@@ -31,7 +31,8 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 		)
 
 	def get_template_configs(self):
-		return [dict(type="settings", custom_bindings=False)]
+		return [dict(type="settings", custom_bindings=False),
+				dict(type="navbar", custom_bindings=False)]
 
 	##~~ AssetPlugin mixin
 
