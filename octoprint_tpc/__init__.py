@@ -26,7 +26,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 	##~~ SettingsPlugin mixi
 	def on_after_startup(self):
 		####### test
-		self.lol = multiple.add(5)
+		self.lol = multiple.double(5)
 		self._logger.info(self.lol)
 
 		self._logger.info("Tpc started! %s" % self._settings.get(["nozzle_temp"]))
@@ -55,19 +55,26 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			less=["less/tpc.less"]
 		)
 
-	##~~ #################################################################################
+	##~~ SimpleApiPlugin
 
 	def get_api_commands(self):
-		return dict(led=["state"])
+		return dict(led=["state"],
+					nozzle_position=["wert"]  # was muss für Wert rein?
+					)
 
 	def on_api_command(self, command, data):
 		if command == "led":
 			bOn = "{state}".format(**data)
-			self.lol = multiple.add(bOn)
-			self._logger.info("Hello World! (more: %s)" % self.lol)
+			lol = multiple.double(bOn)
+			self._logger.info("Hello World! (more: %s)" % lol)
+		elif command == "nozzle_position":
+			#wert0 = "{wert}".format(**data[0])
+			#wert1 = "{wert}".format(**data[1])
+			#sum = multiple.add(wert0, wert1)  # richtige funktion ausführen
+			datatype = "{wert}".format(**data)
+			self._logger.info("nozzle_position ausgeführt %s" % datatype)
 
-
-		# Führen Sie in Python eine Aktion aus, um die LED ein- und auszuschalten
+	# Führen Sie in Python eine Aktion aus, um die LED ein- und auszuschalten
 
 	##~~ Softwareupdate hook
 

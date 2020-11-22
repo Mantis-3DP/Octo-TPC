@@ -53,6 +53,35 @@ $(function() {
             });
             return true;
         }
+        // this function should issue a function in cv.py to take a picture -> save position of orifice
+        self.nozzle_position = function() {
+            $.ajax({
+                url:         "/api/plugin/tpc",
+                type:        "POST",
+                contentType: "application/json",
+                dataType:    "json",
+                headers:     {"X-Api-Key": UI_API_KEY},
+                data:        JSON.stringify({"command": "nozzle_position", "wert": [3, 4]}),
+                complete: function (data) {
+                    self.wertanpassung(data)
+                }
+            });
+            return true;
+        }
+
+        self.wertanpassung = function(data) {
+            if (data == 7){
+                self.gcode_arr.push(data)
+            } else {
+                self.gcode_arr.push(data);
+            }
+            OctoPrint.control.sendGcode(self.gcode_arr());
+            self.gcode_arr([]);
+        }
+
+
+
+
 
         // cali
         self.start_cali = function()  {
