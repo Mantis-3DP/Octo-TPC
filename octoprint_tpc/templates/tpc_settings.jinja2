@@ -1,12 +1,19 @@
-<h3>Test</h3>
+<h3>TPC</h3>
 <form class="form-horizontal">
     <div class="control-group">
+        <legend>Enable Preheating Überschrift</legend>
+        <label class="control-label">Enable tool preheating</label>
+            <div class="controls">
+                <input type="checkbox" class="input-block-level" data-bind="checked: settings.plugins.tpc.enable_tool">
+            </div>
+        <br>  {# leer Zeile #}
+        <legend>URL Settings</legend>
         <label class="control-label">{{ _('URL') }}</label>
-        <div class="controls">
-            <label>
-                <input type="text" class="input-block-level" data-bind="value: settings.plugins.tpc.url">
-            </label>
-        </div>
+            <div class="controls">
+                <label>
+                    <input type="text" class="input-block-level" data-bind="value: settings.plugins.tpc.url">
+                </label>
+            </div>
     </div>
     <div class="control-group">
     <label class="control-label">Nozzle Temp:</label>
@@ -16,9 +23,9 @@
     </div>
     <div class="control-group">
         <label class="control-label">Feed Rate (how fast the x/y axes move):</label>
-        <div class="controls">
-          <input type="number" step="100" data-bind="value: settings.plugins.tpc.feed_rate">
-        </div>
+            <div class="controls">
+              <input type="number" step="100" data-bind="value: settings.plugins.tpc.feed_rate">
+            </div>
     </div>
 </form>
 

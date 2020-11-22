@@ -1,3 +1,5 @@
+
+
 $(function() {
     function tpcViewModel(parameters) {
         var self = this;
@@ -9,6 +11,75 @@ $(function() {
 
         // this will hold the URL entered in the text field
         self.newUrl = ko.observable();
+
+        self.count = ko.observable();
+
+        // cali
+        self.running = ko.observable();
+        self.gcode_arr = ko.observableArray();
+
+
+        self.increase = function() {
+            console.log("increase called!")
+            var currentValue = self.count();
+            self.count(currentValue + 1);
+            self.gcode_arr.push('G91');
+            self.gcode_arr.push('Z10');
+            self.gcode_arr.push('G90');
+
+            OctoPrint.control.sendGcode(self.gcode_arr());
+        }
+        self.multiincrease = function() {
+            var currentValue = self.count();
+            self.count(currentValue + 10);
+        }
+        self.decrease = function() {
+            var currentValue = self.count();
+            if (currentValue > 0) {
+                self.count(currentValue - 1);
+            }
+        }
+
+        self.ledOn = function() {
+            $.ajax({
+                url:         "/api/plugin/tpc",
+                type:        "POST",
+                contentType: "application/json",
+                dataType:    "json",
+                headers:     {"X-Api-Key": UI_API_KEY},
+                data:        JSON.stringify({"command": "led", "state": self.count()}),
+                complete: function () {
+                }
+            });
+            return true;
+        }
+
+        // cali
+        self.start_cali = function()  {
+            if (!self.running()) {
+                self.running(true)
+                self.gcode_arr.push("now running");
+
+
+            } else if (self.running()){
+                self.running(false)
+                self.gcode_arr.push('stopped');
+
+
+            }
+
+
+
+            OctoPrint.control.sendGcode(self.gcode_arr());
+            self.gcode_arr([]);
+        }
+
+        self.aftersuccess = function(sum) {
+            self.count = sum;
+            self.gcode_arr.push(self.count);
+            OctoPrint.control.sendGcode(self.gcode_arr());
+
+        }
 
         // this will be called when the user clicks the "Go" button and set the iframe's URL to
         // the entered URL
@@ -23,6 +94,13 @@ $(function() {
         self.onBeforeBinding = function() {
             self.newUrl(self.settings.settings.plugins.tpc.url());
             self.goToUrl();
+            self.count(0);
+
+
+            // cali
+            self.running(false);
+
+
         }
     }
 

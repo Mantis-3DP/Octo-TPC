@@ -1,9 +1,3 @@
-
-
-
-
-
-
 {# here lege ich eine Variable newUrl an. diese muss noch eine Funktion in tpc_2.js erhalten #}
 
 
@@ -15,3 +9,12 @@
 
 
 <iframe data-bind="attr: {src: currentUrl}" style="width: 100%; height: 600px; border: 1px solid #808080"></iframe>
+
+<br>
+
+<button data-bind="click: decrease">-</button>
+<span data-bind="text: count">0</span>
+<button data-bind="click: increase">+</button>
+<button data-bind="click: multiincrease">++</button>
+<br>
+<button class="btn btn-primary" data-bind="click: ledOn">Cali</button>

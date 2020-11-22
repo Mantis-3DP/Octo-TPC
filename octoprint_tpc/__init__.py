@@ -10,24 +10,34 @@ from __future__ import absolute_import
 # Take a look at the documentation on what other plugin mixins are available.
 
 import octoprint.plugin
+import flask
+import octoprint_tpc.cv as multiple
+
 
 class TpcPlugin(octoprint.plugin.SettingsPlugin,
-                octoprint.plugin.AssetPlugin,
+				octoprint.plugin.AssetPlugin,
 				octoprint.plugin.StartupPlugin,
-                octoprint.plugin.TemplatePlugin):
+				octoprint.plugin.TemplatePlugin,
+				octoprint.plugin.SimpleApiPlugin):
 
+	# import octoprint_tpc.cv as multiple importiert meine neue file die dann wie gewohnt mit multiple.function
+	# aufgerufen werden kann
 
 	##~~ SettingsPlugin mixi
 	def on_after_startup(self):
+		####### test
+		self.lol = multiple.add(5)
+		self._logger.info(self.lol)
+
 		self._logger.info("Tpc started! %s" % self._settings.get(["nozzle_temp"]))
 		self._logger.info("Hello World! (more: %s)" % self._settings.get(["url"]))
 
 	def get_settings_defaults(self):
 		return dict(
 			# put your plugin's default settings here
-		url="https://en.wikipedia.org/wiki/Hello_world",
-		nozzle_temp=180,
-		feed_rate=1200
+			url="https://en.wikipedia.org/wiki/Hello_world",
+			nozzle_temp=180,
+			feed_rate=1200,
 		)
 
 	def get_template_configs(self):
@@ -44,6 +54,20 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			css=["css/tpc.css"],
 			less=["less/tpc.less"]
 		)
+
+	##~~ #################################################################################
+
+	def get_api_commands(self):
+		return dict(led=["state"])
+
+	def on_api_command(self, command, data):
+		if command == "led":
+			bOn = "{state}".format(**data)
+			self.lol = multiple.add(bOn)
+			self._logger.info("Hello World! (more: %s)" % self.lol)
+
+
+		# Führen Sie in Python eine Aktion aus, um die LED ein- und auszuschalten
 
 	##~~ Softwareupdate hook
 
@@ -76,9 +100,11 @@ __plugin_name__ = "Tpc Plugin"
 # Starting with OctoPrint 1.4.0 OctoPrint will also support to run under Python 3 in addition to the deprecated
 # Python 2. New plugins should make sure to run under both versions for now. Uncomment one of the following
 # compatibility flags according to what Python versions your plugin supports!
-#__plugin_pythoncompat__ = ">=2.7,<3" # only python 2
-__plugin_pythoncompat__ = ">=3,<4" # only python 3
-#__plugin_pythoncompat__ = ">=2.7,<4" # python 2 and 3
+# __plugin_pythoncompat__ = ">=2.7,<3" # only python 2
+__plugin_pythoncompat__ = ">=3,<4"  # only python 3
+
+
+# __plugin_pythoncompat__ = ">=2.7,<4" # python 2 and 3
 
 def __plugin_load__():
 	global __plugin_implementation__
@@ -88,4 +114,3 @@ def __plugin_load__():
 	__plugin_hooks__ = {
 		"octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
 	}
-
