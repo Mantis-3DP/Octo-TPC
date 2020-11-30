@@ -1,5 +1,3 @@
-
-
 $(function() {
     function tpcViewModel(parameters) {
         var self = this;
@@ -13,6 +11,9 @@ $(function() {
         self.newUrl = ko.observable();
 
         self.count = ko.observable();
+        self.offsetX = ko.observable();
+        self.offsetY = ko.observable();
+        self.offsetZ = ko.observable();
 
         // cali
         self.running = ko.observable();
@@ -23,9 +24,7 @@ $(function() {
             console.log("increase called!")
             var currentValue = self.count();
             self.count(currentValue + 1);
-            self.gcode_arr.push('G91');
-            self.gcode_arr.push('Z10');
-            self.gcode_arr.push('G90');
+
 
             OctoPrint.control.sendGcode(self.gcode_arr());
         }
@@ -39,6 +38,26 @@ $(function() {
                 self.count(currentValue - 1);
             }
         }
+
+
+        self._getLocation = function() {
+             $.ajax({
+                    url: PLUGIN_BASEURL + "tpc/camera_image",
+                    type:        "GET",
+                    contentType: "application/json",
+                    dataType:    "json",
+                    // headers:     {"X-Api-Key": UI_API_KEY},
+                    // data:        JSON.stringify({"command": "led", "state": self.count()}),
+                    success: function (response) {
+                        if(response.hasOwnProperty("error")) {
+                            alert(response.error);
+                        }
+                    }
+             });
+
+
+        }
+
 
         self.ledOn = function() {
             $.ajax({
@@ -54,14 +73,14 @@ $(function() {
             return true;
         }
         // this function should issue a function in cv.py to take a picture -> save position of orifice
-        self.nozzle_position = function() {
+        self.nozzle_position = function(test) {
             $.ajax({
                 url:         "/api/plugin/tpc",
                 type:        "POST",
                 contentType: "application/json",
                 dataType:    "json",
                 headers:     {"X-Api-Key": UI_API_KEY},
-                data:        JSON.stringify({"command": "nozzle_position", "wert": [3, 4]}),
+                data:        JSON.stringify({"command": "nozzle_position", "wert": test}),
                 complete: function (data) {
                     self.wertanpassung(data)
                 }
@@ -124,7 +143,9 @@ $(function() {
             self.newUrl(self.settings.settings.plugins.tpc.url());
             self.goToUrl();
             self.count(0);
-
+            self.offsetX(self.settings.settings.plugins.tpc.camera.x());
+            self.offsetY(self.settings.settings.plugins.tpc.camera.y());
+            self.offsetZ(self.settings.settings.plugins.tpc.camera.z());
 
             // cali
             self.running(false);

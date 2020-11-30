@@ -18,7 +18,8 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 				octoprint.plugin.AssetPlugin,
 				octoprint.plugin.StartupPlugin,
 				octoprint.plugin.TemplatePlugin,
-				octoprint.plugin.SimpleApiPlugin):
+				octoprint.plugin.SimpleApiPlugin,
+				octoprint.plugin.EventHandlerPlugin):
 
 	# import octoprint_tpc.cv as multiple importiert meine neue file die dann wie gewohnt mit multiple.function
 	# aufgerufen werden kann
@@ -38,6 +39,17 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			url="https://en.wikipedia.org/wiki/Hello_world",
 			nozzle_temp=180,
 			feed_rate=1200,
+			# camera position
+			camera=dict(
+				x=100,
+				y=160,
+				z=20
+			),
+			# Offsets in mm
+			tool0=dict(x=1, y=6, z=-0.3),
+			tool1=dict(x=6,	y=3, z=-0.8),
+			tool2=dict(x=3, y=2, z=-0.2),
+			tool3=dict(x=2, y=1, z=-0.5)
 		)
 
 	def get_template_configs(self):
@@ -57,24 +69,44 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 
 	##~~ SimpleApiPlugin
 
+	# wenn der command ausgeführt wird, wird in on api command etwas ausgeführt.
+	#
 	def get_api_commands(self):
 		return dict(led=["state"],
-					nozzle_position=["wert"]  # was muss für Wert rein?
+					nozzle_position=["wert"]  # was muss für Wert rein? da ist ein String drin
 					)
 
 	def on_api_command(self, command, data):
 		if command == "led":
 			bOn = "{state}".format(**data)
 			lol = multiple.double(bOn)
+			self._printer.commands(lol)  # sendet ins terminal
 			self._logger.info("Hello World! (more: %s)" % lol)
 		elif command == "nozzle_position":
-			#wert0 = "{wert}".format(**data[0])
-			#wert1 = "{wert}".format(**data[1])
-			#sum = multiple.add(wert0, wert1)  # richtige funktion ausführen
+
 			datatype = "{wert}".format(**data)
 			self._logger.info("nozzle_position ausgeführt %s" % datatype)
 
 	# Führen Sie in Python eine Aktion aus, um die LED ein- und auszuschalten
+
+	# Flask endpoint for the GUI to request camera images. Possible request parameters are "BED" and "HEAD".
+	@octoprint.plugin.BlueprintPlugin.route("/camera_image", methods=["GET"])
+	def getLocation(self):
+		result = ""
+		if "testVar" in flask.request.values:
+			self._logger.info(flask.request.values["testVar"])
+		else:
+			self._logger.info("no testVar found")
+		result = flask.jsonify(error="print result")
+		return flask.make_response(result, 200)
+
+	# Use the on_event hook to extract XML data every time a new file has been loaded by the user
+	def on_event(self, event, payload):
+		if event == "ToolChange":
+			self._logger.info("T" + str(payload["new"]))
+		else:
+			self._logger.info(event, payload)
+
 
 	##~~ Softwareupdate hook
 

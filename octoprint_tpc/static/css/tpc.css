@@ -1,1 +1,51 @@
-/* TODO: Have your plugin's CSS files generated to here. */
+.blue_box,
+.green_box {
+  display: block;
+  clear: both;
+}
+.blue_box span {
+  background-color: blue;
+  color: white;
+  padding: 10px 5px;
+  display: block;
+  float: left;
+}
+.green_box span {
+  background-color: green;
+  color: white;
+  padding: 10px 5px;
+  display: block;
+  float: left;
+}
+#settings_plugin_tpc textarea.patch {
+  font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+  font-size: 0.8em;
+  margin-top: 10px;
+}
+#settings_plugin_tpc .help-inline {
+  margin-bottom: 10px;
+}
+#settings_plugin_tpc pre.diff {
+  margin-top: 10px;
+  font-size: 0.8em;
+  min-height: 340px;
+}
+#settings_plugin_tpc pre.diff .added {
+  color: green;
+  background-color: lightgreen;
+}
+#settings_plugin_tpc pre.diff .removed {
+  color: red;
+  background-color: lightpink;
+}
+#settings_plugin_tpc pre.diff .unchanged {
+  color: grey;
+}
+#settings_plugin_tpc pre.diff .separator {
+  color: lightgray;
+}
+#settings_plugin_tpc pre.pre-scrollable {
+  min-height: 200px;
+  max-height: 200px;
+}
+/*# sourceMappingURL=tpc.css.map */
