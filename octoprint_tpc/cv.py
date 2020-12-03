@@ -84,88 +84,71 @@ def findValues():
 	cap.release()
 	cv2.destroyAllWindows
 
-class imageprocessing:
-
-	def __init__(self, webcam_streamUrl='http://192.168.178.26:8081/video.mjpg'):
-		self.webcam_streamUrl = webcam_streamUrl
 
 
 
 
 
 
-	def createDetector(self, minThreshold=10, maxThreshold=200, minArea=100, minCircularity=0.55, minConvexity=0.55, minInertiaRatio=0.55):
-		# Setup SimpleBlobDetector parameters.
-		params = cv2.SimpleBlobDetector_Params()
-		params.minThreshold = minThreshold # Change thresholds
-		params.maxThreshold = maxThreshold
-		params.filterByArea = True  # Filter by Area.
-		params.minArea = minArea
-		params.filterByCircularity = True  # Filter by Circularity
-		params.minCircularity = minCircularity
-		params.filterByConvexity = True  # Filter by Convexity
-		params.minConvexity = minConvexity
-		params.filterByInertia = True  # Filter by Inertia
-		params.minInertiaRatio = minInertiaRatio
-		detector = cv2.SimpleBlobDetector_create(params)
-		return (detector)
-
-	def putText(self, frame, text, color=(0, 0, 255), offsetx=0, offsety=0,
-				stroke=1):  # Offsets are in character box size in pixels.
-		if (text == 'timestamp'): text = datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")
-		baseline = 0
-		fontScale = 1
-		if (frame.shape[1] > 640): fontScale = stroke = 2
-		offpix = cv2.getTextSize('A', cv2.FONT_HERSHEY_SIMPLEX, fontScale, stroke)
-		textpix = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, fontScale, stroke)
-		offsety = max(offsety, (-frame.shape[0] / 2 + offpix[0][1]) / offpix[0][1])  # Let offsety -99 be top row
-		offsetx = max(offsetx, (-frame.shape[1] / 2 + offpix[0][0]) / offpix[0][0])  # Let offsetx -99 be left edge
-		offsety = min(offsety, (frame.shape[0] / 2 - offpix[0][1]) / offpix[0][1])  # Let offsety  99 be bottom row.
-		offsetx = min(offsetx, (frame.shape[1] / 2 - offpix[0][0]) / offpix[0][0])  # Let offsetx  99 be right edge.
-		cv2.putText(frame, text,
-					(int(offsetx * offpix[0][0]) + int(frame.shape[1] / 2) - int(textpix[0][0] / 2)
-					 , int(offsety * offpix[0][1]) + int(frame.shape[0] / 2) + int(textpix[0][1] / 2)),
-					cv2.FONT_HERSHEY_SIMPLEX, fontScale, color, stroke)
-		return (frame)
-
-	def testConf(self):
-		while(True):
-			im = self.saveFrame()
-			keypoints = self.createDetector().detect(im)
-			frame = cv2.drawKeypoints(im, keypoints, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-
-			frame = self.putText(frame, 'timestamp', offsety=99)
-			print(len(keypoints))
-			cv2.imshow("Video", frame)
-			if cv2.waitKey(1) & 0xFF == ord("q"):
-				break
-		cv2.destroyAllWindows
+def createDetector(minThreshold=10, maxThreshold=200, minArea=100, minCircularity=0.55, minConvexity=0.55, minInertiaRatio=0.55):
+	# Setup SimpleBlobDetector parameters.
+	params = cv2.SimpleBlobDetector_Params()
+	params.minThreshold = minThreshold # Change thresholds
+	params.maxThreshold = maxThreshold
+	params.filterByArea = True  # Filter by Area.
+	params.minArea = minArea
+	params.filterByCircularity = True  # Filter by Circularity
+	params.minCircularity = minCircularity
+	params.filterByConvexity = True  # Filter by Convexity
+	params.minConvexity = minConvexity
+	params.filterByInertia = True  # Filter by Inertia
+	params.minInertiaRatio = minInertiaRatio
+	detector = cv2.SimpleBlobDetector_create(params)
+	return (detector)
 
 
-	def saveFrame(self):
-		cap = cv2.VideoCapture(self.webcam_streamUrl)
-		ret, im = cap.read()
-		if im is None:
-			print("unable to capture frame")
-		return im
+
+def testConf():
+	while(True):
+		im = saveFrame()
+		keypoints = createDetector().detect(im)
+		frame = cv2.drawKeypoints(im, keypoints, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+		frame = putText(frame, 'timestamp', offsety=99)
+		print(len(keypoints))
+		cv2.imshow("Video", frame)
+		if cv2.waitKey(1) & 0xFF == ord("q"):
+			break
+	cv2.destroyAllWindows
 
 
-	def position(self):
-		im = self.saveFrame()
-		keypoints = self.createDetector().detect(im)
-		if len(keypoints) == 1:
-			xy = np.around(keypoints[0].pt)
-			r = np.around(keypoints[0].size / 2)
-			text = "locating position successful"
-		elif len(keypoints) > 1:
-			xy = [0,0]
-			r = 0
-			text = "multiple positions found, check your settings"
-		elif len(keypoints) == 0:
-			xy = [0,0]
-			r = 0
-			text = "no position found, check your settings"
-		return xy, r, text
+def saveFrame():
+	cap = cv2.VideoCapture('http://192.168.178.26:8081/video.mjpg')
+	ret, im = cap.read()
+	if im is None:
+		print("unable to capture frame")
+	return im
+
+
+def position():
+	im = saveFrame()
+	keypoints = createDetector().detect(im)
+	if len(keypoints) == 1:
+		xy = np.around(keypoints[0].pt)
+		r = np.around(keypoints[0].size / 2)
+		text = "locating position successful"
+		success = True
+	elif len(keypoints) > 1:
+		xy = [0,0]
+		r = 0
+		text = "multiple positions found, check your settings"
+		success = False
+	elif len(keypoints) == 0:
+		xy = [0,0]
+		r = 0
+		text = "no position found, check your settings"
+		success = False
+	return xy, r, success
 
 
 	#findValues()

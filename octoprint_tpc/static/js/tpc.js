@@ -10,6 +10,11 @@ $(function() {
         // this will hold the URL entered in the text field
         self.newUrl = ko.observable();
 
+        // stages of calibration
+        self.started = ko.observable();
+        self.stage = ko.observable();
+
+
         self.count = ko.observable();
         self.offsetCX = ko.observable();
         self.offsetCY = ko.observable();
@@ -19,22 +24,54 @@ $(function() {
         self.offsetTZ = ko.observable();
 
 
-
 // onDataUpdaterPluginMessage
-
-
         self.increase = function() {
             self.count(self.offsetTX());
         }
-
-
-
 
         self.increase2 = function() {
             console.log("increase called!")
             var currentValue = self.count();
             self.count(currentValue + 1);
         }
+
+        self.start_calibration = function() {
+            if (!self.started()){
+                self.started(true);
+                self.stage("Next");
+                self.offsetTX(-1);
+
+            }
+            else if (self.stage !== 'End'){
+                self.offsetTX(1);
+                self.stage("End");
+            }
+            else if (self.stage == "End"){
+                self.offsetTX(10);
+            }
+        }
+
+        self.stop_calibration = function() {
+            self.started(false);
+            self.stage("Start")
+            self.offsetTX(self.settings.settings.plugins.tpc.tool0.x());
+        }
+
+
+        self.ledOn = function() {
+            $.ajax({
+                url:         "/api/plugin/tpc",
+                type:        "POST",
+                contentType: "application/json",
+                dataType:    "json",
+                headers:     {"X-Api-Key": UI_API_KEY},
+                data:        JSON.stringify({"command": "led", "state": self.stage()}),
+                complete: function () {
+                }
+            });
+            return true;
+        }
+
 /*
 
         self.multiincrease = function() {
@@ -65,19 +102,7 @@ $(function() {
              });
         }
 
-        self.ledOn = function() {
-            $.ajax({
-                url:         "/api/plugin/tpc",
-                type:        "POST",
-                contentType: "application/json",
-                dataType:    "json",
-                headers:     {"X-Api-Key": UI_API_KEY},
-                data:        JSON.stringify({"command": "led", "state": self.count()}),
-                complete: function () {
-                }
-            });
-            return true;
-        }
+
         // this function should issue a function in cv.py to take a picture -> save position of orifice
         self.nozzle_position = function(test) {
             $.ajax({
@@ -128,6 +153,8 @@ $(function() {
             self.newUrl(self.settings.settings.plugins.tpc.url());
             self.goToUrl();
             self.count(0);
+            self.stage("Start")
+            self.started(false)
             self.offsetCX(self.settings.settings.plugins.tpc.camera.x()); // offsetX = tpc.camera aus den system defaults
             self.offsetCY(self.settings.settings.plugins.tpc.camera.y());
             self.offsetCZ(self.settings.settings.plugins.tpc.camera.z());
@@ -135,11 +162,20 @@ $(function() {
             self.offsetTY(self.settings.settings.plugins.tpc.tool0.y());
             self.offsetTZ(self.settings.settings.plugins.tpc.tool0.z());
 
-
-
-
         }
+
+        self.onEventSettingsUpdated = function (payload) {
+            self.offsetTX(self.settings.settings.plugins.tpc.tool0.x()); // offsetX = tpc.camera aus den system defaults
+            self.offsetTY(self.settings.settings.plugins.tpc.tool0.y());
+            self.offsetTZ(self.settings.settings.plugins.tpc.tool0.z());
+        }
+
+
     }
+
+
+
+
 
     // This is how our plugin registers itself with the application, by adding some configuration
     // information to the global variable OCTOPRINT_VIEWMODELS

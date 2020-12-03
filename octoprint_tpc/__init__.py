@@ -73,11 +73,12 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 
 	def on_api_command(self, command, data):
 		if command == "led":
-			xy, r, text = multi.imageprocessing().position()
+			xy, r, success = multi.position()
+			datatype = "{state}".format(**data)
 			#bOn = "{state}".format(**data)
 			#lol = cv.double(bOn)
 			#self._printer.commands(5)  # sendet ins terminal
-			self._logger.info("Hello World! (more: %s)" % text)
+			self._logger.info("Hello World! (more: {}){}".format(success,datatype))
 		elif command == "nozzle_position":
 
 			datatype = "{wert}".format(**data)
