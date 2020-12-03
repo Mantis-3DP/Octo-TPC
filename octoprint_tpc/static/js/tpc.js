@@ -11,34 +11,43 @@ $(function() {
         self.newUrl = ko.observable();
 
         self.count = ko.observable();
-        self.offsetX = ko.observable();
-        self.offsetY = ko.observable();
-        self.offsetZ = ko.observable();
+        self.offsetCX = ko.observable();
+        self.offsetCY = ko.observable();
+        self.offsetCZ = ko.observable();
+        self.offsetTX = ko.observable();
+        self.offsetTY = ko.observable();
+        self.offsetTZ = ko.observable();
 
-        // cali
-        self.running = ko.observable();
-        self.gcode_arr = ko.observableArray();
+
+
+// onDataUpdaterPluginMessage
 
 
         self.increase = function() {
+            self.count(self.offsetTX());
+        }
+
+
+
+
+        self.increase2 = function() {
             console.log("increase called!")
             var currentValue = self.count();
             self.count(currentValue + 1);
-
-
-            OctoPrint.control.sendGcode(self.gcode_arr());
         }
+/*
+
         self.multiincrease = function() {
             var currentValue = self.count();
             self.count(currentValue + 10);
         }
+
         self.decrease = function() {
             var currentValue = self.count();
             if (currentValue > 0) {
                 self.count(currentValue - 1);
             }
         }
-
 
         self._getLocation = function() {
              $.ajax({
@@ -54,10 +63,7 @@ $(function() {
                         }
                     }
              });
-
-
         }
-
 
         self.ledOn = function() {
             $.ajax({
@@ -88,36 +94,15 @@ $(function() {
             return true;
         }
 
-        self.wertanpassung = function(data) {
-            if (data == 7){
-                self.gcode_arr.push(data)
-            } else {
-                self.gcode_arr.push(data);
-            }
-            OctoPrint.control.sendGcode(self.gcode_arr());
-            self.gcode_arr([]);
-        }
-
-
-
-
-
         // cali
         self.start_cali = function()  {
             if (!self.running()) {
                 self.running(true)
                 self.gcode_arr.push("now running");
-
-
             } else if (self.running()){
                 self.running(false)
                 self.gcode_arr.push('stopped');
-
-
             }
-
-
-
             OctoPrint.control.sendGcode(self.gcode_arr());
             self.gcode_arr([]);
         }
@@ -126,8 +111,8 @@ $(function() {
             self.count = sum;
             self.gcode_arr.push(self.count);
             OctoPrint.control.sendGcode(self.gcode_arr());
-
         }
+*/
 
         // this will be called when the user clicks the "Go" button and set the iframe's URL to
         // the entered URL
@@ -143,12 +128,14 @@ $(function() {
             self.newUrl(self.settings.settings.plugins.tpc.url());
             self.goToUrl();
             self.count(0);
-            self.offsetX(self.settings.settings.plugins.tpc.camera.x());
-            self.offsetY(self.settings.settings.plugins.tpc.camera.y());
-            self.offsetZ(self.settings.settings.plugins.tpc.camera.z());
+            self.offsetCX(self.settings.settings.plugins.tpc.camera.x()); // offsetX = tpc.camera aus den system defaults
+            self.offsetCY(self.settings.settings.plugins.tpc.camera.y());
+            self.offsetCZ(self.settings.settings.plugins.tpc.camera.z());
+            self.offsetTX(self.settings.settings.plugins.tpc.tool0.x()); // offsetX = tpc.camera aus den system defaults
+            self.offsetTY(self.settings.settings.plugins.tpc.tool0.y());
+            self.offsetTZ(self.settings.settings.plugins.tpc.tool0.z());
 
-            // cali
-            self.running(false);
+
 
 
         }

@@ -1,0 +1,169 @@
+<table id="temperature-table" class="table table-bordered table-hover" data-bind="visible: loginState.hasPermissionKo(access.permissions.CONTROL)" style="">
+        <tbody><tr>
+            <th class="temperature_tool"></th>
+            <th class="temperature_actual" title="Aktuelle vom Drucker gemeldete Temperatur">Ist</th>
+            <th class="temperature_target" title="Aktuelle Zieltemperatur wie von deinem Drucker gemeldet">
+                Soll
+                <div class="btn-group pull-right">
+                    <button class="btn btn-small dropdown-toggle" title="Temperaturprofil anwenden" data-toggle="dropdown" data-bind="enable: $root.isOperational() &amp;&amp; $root.loginState.hasPermissionKo($root.access.permissions.CONTROL)()"><span class="caret"></span></button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="javascript:void(0)" data-bind="click: $root.setTargetsToZero">Aus</a>
+                        </li>
+                        <li class="divider"></li>
+                        <!-- ko foreach: $root.temperature_profiles -->
+                        <li>
+                            <a href="javascript:void(0)" data-bind="click: function() { $root.setTargetsFromProfile($data);}, text: $root.profileText('all', $data)">Setze ABS (Tool: 210°C/Bett: 100°C)</a>
+                        </li>
+
+                        <li>
+                            <a href="javascript:void(0)" data-bind="click: function() { $root.setTargetsFromProfile($data);}, text: $root.profileText('all', $data)">Setze PLA (Tool: 180°C/Bett: 60°C)</a>
+                        </li>
+                        <!-- /ko -->
+                    </ul>
+                </div>
+            </th>
+            <th class="temperature_offset" title="Offset für Temperaturbefehle aus Dateien">Offset</th>
+        </tr>
+
+
+        <!-- ko foreach: tools    hier brauche ich ein Skript das den folgenden Teil erzeugt wenn ein zusätzliches Tool ausgewählt wird -->
+        <tr data-bind="template: { name: 'temprow-template' }">
+        <th class="temperature_tool" data-bind="text: name, attr: {title: name}" title="Tool 0">Tool 0</th>
+        <td class="temperature_actual" data-bind="html: formatTemperature(actual()), attr: {title: formatTemperature(actual())}" title="21.3&amp;deg;C">21.3°C</td>
+        <td class="temperature_target">
+            <form class="form-inline" style="margin:0" data-bind="submit: function(element) { $root.setTarget($data, element) }">
+                <div class="input-prepend input-append">
+                    <button type="button" class="btn btn-input-dec" data-bind="click: $root.decrementTarget, enable: $root.isOperational() &amp;&amp; $root.loginState.hasPermissionKo($root.access.permissions.CONTROL)()" title="Feinjustierung: -1°C"><i class="fa fa-minus"></i></button>
+                    <input type="number" min="0" max="999" class="input-mini input-nospin" style="width: 30px" data-bind="attr: {placeholder: cleanTemperature(target(), 1)}, value: newTarget, valueUpdate: 'input', enable: $root.loginState.hasPermissionKo($root.access.permissions.CONTROL)() &amp;&amp; $root.isOperational(), event: { focus: function(d, e) {$root.handleFocus(e, 'target', $data) } }" placeholder="Aus">
+                    <span class="add-on">°C</span>
+                    <button type="button" class="btn btn-input-inc" data-bind="click: $root.incrementTarget, enable: $root.isOperational() &amp;&amp; $root.loginState.hasPermissionKo($root.access.permissions.CONTROL)()" title="Feinjustierung: +1°C"><i class="fa fa-plus"></i></button>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" data-bind="enable: $root.loginState.hasPermissionKo($root.access.permissions.CONTROL)() &amp;&amp; $root.isOperational() &amp;&amp; $data.newTargetValid()" class="btn btn-primary" title="Setzen" disabled=""><i class="fa fa-check"></i></button>
+                    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" data-bind="enable: $root.isOperational() &amp;&amp; $root.loginState.hasPermissionKo($root.access.permissions.CONTROL)()">
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="javascript:void(0)" data-bind="click: $root.setTargetToZero">Aus</a>
+                        </li>
+                        <li class="divider"></li>
+                        <!-- ko foreach: $root.temperature_profiles -->
+                        <li>
+                            <a href="javascript:void(0)" data-bind="click: function() { $root.setTargetFromProfile($parent, $data);}, text: $root.profileText($parent, $data)">Setze ABS (210°C)</a>
+                        </li>
+
+                        <li>
+                            <a href="javascript:void(0)" data-bind="click: function() { $root.setTargetFromProfile($parent, $data);}, text: $root.profileText($parent, $data)">Setze PLA (180°C)</a>
+                        </li>
+                        <!-- /ko -->
+                    </ul>
+                </div>
+            </form>
+        </td>
+        <td class="temperature_offset">
+            <form class="form-inline" style="margin:0">
+                <div class="input-append">
+                    <span class="input-mini uneditable-input text-right" style="width: 30px" data-bind="text: offset">0</span>
+                    <span class="add-on">°C</span>
+                    <button class="btn" title="Offset ändern" data-bind="click: $root.changeOffset, enable: $root.isOperational() &amp;&amp; $root.loginState.hasPermissionKo($root.access.permissions.CONTROL)()"><i class="fa fa-pencil"></i></button>
+                    <button class="btn" title="Offset löschen" data-bind="click: $root.setOffsetToZero, enable: $root.isOperational() &amp;&amp; $root.loginState.hasPermissionKo($root.access.permissions.CONTROL)()"><i class="fa fa-trash"></i></button>
+                </div>
+            </form>
+        </td>
+    </tr>
+
+
+        <!-- /ko hier fängt die Zeile mit dem Bett an-->
+        <tr data-bind="template: { name: 'temprow-template', data: bedTemp }, visible: hasBed">
+        <th class="temperature_tool" data-bind="text: name, attr: {title: name}" title="Bett">Bett</th>
+        <td class="temperature_actual" data-bind="html: formatTemperature(actual()), attr: {title: formatTemperature(actual())}" title="21.3&amp;deg;C">21.3°C</td>
+        <td class="temperature_target">
+            <form class="form-inline" style="margin:0" data-bind="submit: function(element) { $root.setTarget($data, element) }">
+                <div class="input-prepend input-append">
+                    <button type="button" class="btn btn-input-dec" data-bind="click: $root.decrementTarget, enable: $root.isOperational() &amp;&amp; $root.loginState.hasPermissionKo($root.access.permissions.CONTROL)()" title="Feinjustierung: -1°C"><i class="fa fa-minus"></i></button>
+                    <input type="number" min="0" max="999" class="input-mini input-nospin" style="width: 30px" data-bind="attr: {placeholder: cleanTemperature(target(), 1)}, value: newTarget, valueUpdate: 'input', enable: $root.loginState.hasPermissionKo($root.access.permissions.CONTROL)() &amp;&amp; $root.isOperational(), event: { focus: function(d, e) {$root.handleFocus(e, 'target', $data) } }" placeholder="Aus">
+                    <span class="add-on">°C</span>
+                    <button type="button" class="btn btn-input-inc" data-bind="click: $root.incrementTarget, enable: $root.isOperational() &amp;&amp; $root.loginState.hasPermissionKo($root.access.permissions.CONTROL)()" title="Feinjustierung: +1°C"><i class="fa fa-plus"></i></button>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" data-bind="enable: $root.loginState.hasPermissionKo($root.access.permissions.CONTROL)() &amp;&amp; $root.isOperational() &amp;&amp; $data.newTargetValid()" class="btn btn-primary" title="Setzen" disabled=""><i class="fa fa-check"></i></button>
+                    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" data-bind="enable: $root.isOperational() &amp;&amp; $root.loginState.hasPermissionKo($root.access.permissions.CONTROL)()">
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="javascript:void(0)" data-bind="click: $root.setTargetToZero">Aus</a>
+                        </li>
+                        <li class="divider"></li>
+                        <!-- ko foreach: $root.temperature_profiles -->
+                        <li>
+                            <a href="javascript:void(0)" data-bind="click: function() { $root.setTargetFromProfile($parent, $data);}, text: $root.profileText($parent, $data)">Setze ABS (100°C)</a>
+                        </li>
+
+                        <li>
+                            <a href="javascript:void(0)" data-bind="click: function() { $root.setTargetFromProfile($parent, $data);}, text: $root.profileText($parent, $data)">Setze PLA (60°C)</a>
+                        </li>
+                        <!-- /ko -->
+                    </ul>
+                </div>
+            </form>
+        </td>
+        <td class="temperature_offset">
+            <form class="form-inline" style="margin:0">
+                <div class="input-append">
+                    <span class="input-mini uneditable-input text-right" style="width: 30px" data-bind="text: offset">0</span>
+                    <span class="add-on">°C</span>
+                    <button class="btn" title="Offset ändern" data-bind="click: $root.changeOffset, enable: $root.isOperational() &amp;&amp; $root.loginState.hasPermissionKo($root.access.permissions.CONTROL)()"><i class="fa fa-pencil"></i></button>
+                    <button class="btn" title="Offset löschen" data-bind="click: $root.setOffsetToZero, enable: $root.isOperational() &amp;&amp; $root.loginState.hasPermissionKo($root.access.permissions.CONTROL)()"><i class="fa fa-trash"></i></button>
+                </div>
+            </form>
+        </td>
+    </tr>
+        <tr data-bind="template: { name: 'temprow-template', data: chamberTemp }, visible: hasChamber" style="display: none;">
+        <th class="temperature_tool" data-bind="text: name, attr: {title: name}" title="Kammer">Kammer</th>
+        <td class="temperature_actual" data-bind="html: formatTemperature(actual()), attr: {title: formatTemperature(actual())}" title="-">-</td>
+        <td class="temperature_target">
+            <form class="form-inline" style="margin:0" data-bind="submit: function(element) { $root.setTarget($data, element) }">
+                <div class="input-prepend input-append">
+                    <button type="button" class="btn btn-input-dec" data-bind="click: $root.decrementTarget, enable: $root.isOperational() &amp;&amp; $root.loginState.hasPermissionKo($root.access.permissions.CONTROL)()" title="Feinjustierung: -1°C"><i class="fa fa-minus"></i></button>
+                    <input type="number" min="0" max="999" class="input-mini input-nospin" style="width: 30px" data-bind="attr: {placeholder: cleanTemperature(target(), 1)}, value: newTarget, valueUpdate: 'input', enable: $root.loginState.hasPermissionKo($root.access.permissions.CONTROL)() &amp;&amp; $root.isOperational(), event: { focus: function(d, e) {$root.handleFocus(e, 'target', $data) } }" placeholder="-">
+                    <span class="add-on">°C</span>
+                    <button type="button" class="btn btn-input-inc" data-bind="click: $root.incrementTarget, enable: $root.isOperational() &amp;&amp; $root.loginState.hasPermissionKo($root.access.permissions.CONTROL)()" title="Feinjustierung: +1°C"><i class="fa fa-plus"></i></button>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" data-bind="enable: $root.loginState.hasPermissionKo($root.access.permissions.CONTROL)() &amp;&amp; $root.isOperational() &amp;&amp; $data.newTargetValid()" class="btn btn-primary" title="Setzen" disabled=""><i class="fa fa-check"></i></button>
+                    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" data-bind="enable: $root.isOperational() &amp;&amp; $root.loginState.hasPermissionKo($root.access.permissions.CONTROL)()">
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="javascript:void(0)" data-bind="click: $root.setTargetToZero">Aus</a>
+                        </li>
+                        <li class="divider"></li>
+                        <!-- ko foreach: $root.temperature_profiles -->
+                        <li>
+                            <a href="javascript:void(0)" data-bind="click: function() { $root.setTargetFromProfile($parent, $data);}, text: $root.profileText($parent, $data)">Setze ABS (Aus)</a>
+                        </li>
+
+                        <li>
+                            <a href="javascript:void(0)" data-bind="click: function() { $root.setTargetFromProfile($parent, $data);}, text: $root.profileText($parent, $data)">Setze PLA (Aus)</a>
+                        </li>
+                        <!-- /ko -->
+                    </ul>
+                </div>
+            </form>
+        </td>
+        <td class="temperature_offset">
+            <form class="form-inline" style="margin:0">
+                <div class="input-append">
+                    <span class="input-mini uneditable-input text-right" style="width: 30px" data-bind="text: offset">0</span>
+                    <span class="add-on">°C</span>
+                    <button class="btn" title="Offset ändern" data-bind="click: $root.changeOffset, enable: $root.isOperational() &amp;&amp; $root.loginState.hasPermissionKo($root.access.permissions.CONTROL)()"><i class="fa fa-pencil"></i></button>
+                    <button class="btn" title="Offset löschen" data-bind="click: $root.setOffsetToZero, enable: $root.isOperational() &amp;&amp; $root.loginState.hasPermissionKo($root.access.permissions.CONTROL)()"><i class="fa fa-trash"></i></button>
+                </div>
+            </form>
+        </td>
+    </tr>
+    </tbody></table>
