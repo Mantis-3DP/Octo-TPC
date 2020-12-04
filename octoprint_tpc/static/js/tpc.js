@@ -16,6 +16,7 @@ $(function() {
 
 
         self.count = ko.observable();
+        self.current_step = ko.observable();
         self.offsetCX = ko.observable();
         self.offsetCY = ko.observable();
         self.offsetCZ = ko.observable();
@@ -42,19 +43,53 @@ $(function() {
                 self.offsetTX(-1);
 
             }
-            else if (self.stage !== 'End'){
-                self.offsetTX(1);
-                self.stage("End");
+            else{
+                switch(self.current_step()) {
+                    case 0:
+                        self.offsetTX(1);
+                        break;
+                    case 1:
+                        self.offsetTY(1);
+                        break;
+                    case 2:
+                        self.offsetTZ(1);
+                        break;
+                    case 3:
+                        self.offsetTX(2);
+                        break;
+                    default:
+                        console.log("Problem in the switch section");
+                        break;
+                }
+                self.current_step(self.current_step()+1);
             }
-            else if (self.stage == "End"){
-                self.offsetTX(10);
-            }
+
         }
+
+        self.checkStatus = function() {
+            self.offsetTX(100);
+			$.ajax({
+				url: API_BASEURL + "plugin/tpc",
+				type: "GET",
+				dataType: "json",
+                data: {stopProcessing: true},
+                contentType: "application/json; charset=UTF-8"
+                }).done(function(data){
+                    if (data.success){
+                        self.offsetTY(50);
+                    } else if (!data.success) {
+                        self.offsetTY(40)
+                    }
+            });
+		};
 
         self.stop_calibration = function() {
             self.started(false);
-            self.stage("Start")
+            self.stage("Start");
+            self.current_step(0);
             self.offsetTX(self.settings.settings.plugins.tpc.tool0.x());
+            self.offsetTY(self.settings.settings.plugins.tpc.tool0.y());
+            self.offsetTZ(self.settings.settings.plugins.tpc.tool0.z());
         }
 
 
@@ -155,6 +190,7 @@ $(function() {
             self.count(0);
             self.stage("Start")
             self.started(false)
+            self.current_step(0)
             self.offsetCX(self.settings.settings.plugins.tpc.camera.x()); // offsetX = tpc.camera aus den system defaults
             self.offsetCY(self.settings.settings.plugins.tpc.camera.y());
             self.offsetCZ(self.settings.settings.plugins.tpc.camera.z());

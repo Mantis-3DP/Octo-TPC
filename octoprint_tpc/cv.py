@@ -86,10 +86,6 @@ def findValues():
 
 
 
-
-
-
-
 def createDetector(minThreshold=10, maxThreshold=200, minArea=100, minCircularity=0.55, minConvexity=0.55, minInertiaRatio=0.55):
 	# Setup SimpleBlobDetector parameters.
 	params = cv2.SimpleBlobDetector_Params()
@@ -139,17 +135,22 @@ def position():
 		text = "locating position successful"
 		success = True
 	elif len(keypoints) > 1:
-		xy = [0,0]
+		xy = [0, 0]
 		r = 0
 		text = "multiple positions found, check your settings"
 		success = False
 	elif len(keypoints) == 0:
-		xy = [0,0]
+		xy = [0, 0]
 		r = 0
 		text = "no position found, check your settings"
 		success = False
 	return xy, r, success
 
 
-	#findValues()
-#findValues()
+
+if __name__ == '__main__':
+    # this script is being run directly in the interpreter
+    # i.e.  python this_script.py
+    #
+    # this block will not be executed when this is import'ed
+	findValues()

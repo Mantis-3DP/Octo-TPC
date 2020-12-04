@@ -10,6 +10,7 @@ from __future__ import absolute_import
 # Take a look at the documentation on what other plugin mixins are available.
 
 import octoprint.plugin
+import flask
 import octoprint_tpc.cv as multi
 
 
@@ -26,8 +27,8 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 	##~~ SettingsPlugin mixi
 	def on_after_startup(self):
 		####### test
-		#self.lol = cv.double(5)
-		#self._logger.info(self.lol)
+		# self.lol = cv.double(5)
+		# self._logger.info(self.lol)
 
 		self._logger.info("Tpc started! %s" % self._settings.get(["nozzle_temp"]))
 		self._logger.info("Hello World! (more: %s)" % self._settings.get(["url"]))
@@ -42,7 +43,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			camera=dict(x=100, y=160, z=20),
 			# Offsets in mm
 			tool0=dict(x=1, y=6, z=-0.3),
-			tool1=dict(x=6,	y=3, z=-0.8),
+			tool1=dict(x=6, y=3, z=-0.8),
 			tool2=dict(x=3, y=2, z=-0.2),
 			tool3=dict(x=2, y=1, z=-0.5)
 		)
@@ -71,21 +72,25 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 					nozzle_position=["wert"]  # was muss für Wert rein? da ist ein String drin
 					)
 
+	def on_api_get(self, request):
+		if request.args.get("stopProcessing"):
+			self._logger.debug(request.args)
+			xy, r, success = multi.position()
+			response = dict(success=success)
+			return flask.jsonify(response)
+
 	def on_api_command(self, command, data):
 		if command == "led":
 			xy, r, success = multi.position()
 			datatype = "{state}".format(**data)
-			#bOn = "{state}".format(**data)
-			#lol = cv.double(bOn)
-			#self._printer.commands(5)  # sendet ins terminal
-			self._logger.info("Hello World! (more: {}){}".format(success,datatype))
+			# bOn = "{state}".format(**data)
+			# lol = cv.double(bOn)
+			# self._printer.commands(5)  # sendet ins terminal
+			self._logger.info("Hello World! (more: {}){}".format(success, datatype))
 		elif command == "nozzle_position":
 
 			datatype = "{wert}".format(**data)
 			self._logger.info("nozzle_position ausgeführt %s" % datatype)
-
-
-
 
 	##~~ Softwareupdate hook
 
