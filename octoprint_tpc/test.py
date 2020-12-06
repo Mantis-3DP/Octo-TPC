@@ -1,9 +1,8 @@
 import numpy as np
 
 
-xyr0 = [1, 1]
-xyr1 = [2, 1]
-xyr2 = [2, 2]
+xyr0 = [10, 10]
+xyr2 = [40, 50]
 
 
 
@@ -19,13 +18,14 @@ def angle_between(v1, v2):
     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
 
-def calcOffset(xyr0, xyr1, xyr2):
+def calcOffset(xyr0, xyr2):
 	pos0 = np.array(xyr0)
-	pos1 = np.array(xyr1)
 	pos2 = np.array(xyr2)
 	vecCamera0 = np.array([0, 0])
-	vecCameraX = np.array([2, 0])
-	vecCameraY = np.array([2, 2])
+	vecCamera1 = np.array([4, 3])
+
+	v0 = pos2 - pos0
+	v1 = vecCamera1-vecCamera0
 
 	# Translation
 	matTrans = np.eye(3, dtype=int)
@@ -37,38 +37,45 @@ def calcOffset(xyr0, xyr1, xyr2):
 	matTransBack[1, 2] = -pos0[1]
 
 	# Scale
-	scaleX = np.linalg.norm(vecCameraX-vecCamera0)  # length vector the tool moved above the camera
-	scaleY = np.linalg.norm(vecCameraY-vecCameraX)
-	scaleToolX = np.linalg.norm(pos1 - pos0)
-	scaleToolY = np.linalg.norm(pos2 - pos1)
+
+
+	scaleTool = np.linalg.norm(v0)
+	scaleCamera = np.linalg.norm(v1)  # length vector the tool moved above the camera
+
 
 	matScale = np.eye(3, dtype=float)
-	matScale[0, 0] = scaleX/scaleToolX
-	matScale[1, 1] = scaleY/scaleToolY
+	matScale[0, 0] = scaleCamera/scaleTool
+	matScale[1, 1] = scaleCamera/scaleTool
 
 	# mirror
 
 	matMir = -np.eye(3, dtype=int)
 
 	# Rotation
-	v0 = pos1 - pos0
-	v1 = pos2 - pos1
-	angle0 = angle_between(v0, vecCameraX)
-	angle1 = angle_between(v1, vecCameraY- vecCameraX)
+	v0 = pos2 - pos0
+	v1 = vecCamera1-vecCamera0
+
+	angle0 = angle_between(v0, v1)
+
 	matRot = np.zeros([3, 3])
 	matRot[0, 0] = np.cos(angle0)
-	matRot[1, 0] = np.sin(angle0)
-	matRot[0, 1] = -np.sin(angle0)
+	matRot[1, 0] = -np.sin(angle0)
+	matRot[0, 1] = np.sin(angle0)
 	matRot[1, 1] = np.cos(angle0)
 	matRot[2, 2] = 1
 
-	matRotScale = np.matmul(matRot, matScale)
-	matRotScaleTrans = np.matmul(matRotScale, matTrans)
-	matBackRotScaleTrans = np.matmul(matRotScaleTrans, matTransBack)
-	offset = np.dot(matBackRotScaleTrans, np.append(pos2-pos0, 0))
+	# matRotScale = np.matmul(matRot, matScale)
+	# matRotScaleTrans = np.matmul(matRotScale, matTrans)
+	# matBackRotScaleTrans = np.matmul(matRotScaleTrans, matTransBack)
+	matRotTrans = np.matmul(matTrans, matRot)
+	matScaleRotTrans= np.matmul(matScale, matRotTrans)
+	matTransBackScaleRotTrans = np.matmul(matTransBack, matScaleRotTrans)
+	#matTransBRotTrans = np.matmul(matTransBack, matRotTrans)
+
+	offset = np.dot(matTransBackScaleRotTrans, np.append(pos0-vecCamera0, 0))
 	# TODO: hier ist noch etwas falsch
 	offset = (offset[0:2])
 	print(offset)
 	return offset
 
-calcOffset(xyr0, xyr1, xyr2)
+calcOffset(xyr0, xyr2)
