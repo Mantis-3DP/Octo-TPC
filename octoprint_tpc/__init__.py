@@ -11,6 +11,7 @@ from __future__ import absolute_import
 
 import octoprint.plugin
 import flask
+import time
 import octoprint_tpc.cv as multi
 
 
@@ -45,7 +46,9 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			tool0=dict(x=1, y=6, z=-0.3),
 			tool1=dict(x=6, y=3, z=-0.8),
 			tool2=dict(x=3, y=2, z=-0.2),
-			tool3=dict(x=2, y=1, z=-0.5)
+			tool3=dict(x=2, y=1, z=-0.5),
+			# take tool
+			takeTool="T{}"
 		)
 
 	def get_template_configs(self):
@@ -68,31 +71,70 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 	# wenn der command ausgeführt wird, wird in on api command etwas ausgeführt.
 	#
 	def get_api_commands(self):
-		return dict(led=["state"],
+		return dict(sendToPy=["step"],
 					nozzle_position=["wert"]  # was muss für Wert rein? da ist ein String drin
 					)
 
 	def on_api_get(self, request):
-		if request.args.get("stopProcessing"):
+		if request.args.get("getPosition"):
 			self._logger.debug(request.args)
-			xy, r, success = multi.position()
-			response = dict(success=success)
+
+			xyr, success = multi.position()
+			response = dict(success=success, x=xyr[0], y=xyr[1])
+			self._printer.commands("M114")
+
 			return flask.jsonify(response)
 
 	def on_api_command(self, command, data):
-		if command == "led":
-			xy, r, success = multi.position()
-			datatype = "{state}".format(**data)
+		self._logger.info(str(command))
+		if command == "sendToPy":
+			step = "{step}".format(**data)
+			if step == "1":
+				self._logger.info(step)
+			else:
+				self._logger.info("anotior step " + step)
+			# xy, r, success = multi.position()
+			# datatype = "{state}".format(**data)
 			# bOn = "{state}".format(**data)
 			# lol = cv.double(bOn)
 			# self._printer.commands(5)  # sendet ins terminal
-			self._logger.info("Hello World! (more: {}){}".format(success, datatype))
+			# self._logger.info("Hello World! (more: {}){}".format(success, datatype))
+			self._logger.info(self._settings.get(["feed_rate"]))
+			self._printer.commands("G1 " + "F" + self._settings.get(["feed_rate"]))
+		# + self._settings.get("feed_rate")
 		elif command == "nozzle_position":
 
 			datatype = "{wert}".format(**data)
 			self._logger.info("nozzle_position ausgeführt %s" % datatype)
 
 	##~~ Softwareupdate hook
+	# Use the on_event hook to extract XML data every time a new file has been loaded by the user
+	def on_event(self, event, payload):
+		if event == "PositionUpdate":
+			self.x = payload["x"]
+			self.y = payload["y"]
+			self.z = payload["z"]
+			self._logger.info("X" + str(payload["x"]) + " Y" + str(payload["y"]) + " Z" + str(payload["z"]))
+		else:
+			self._logger.info(event, payload)
+
+	def toolTocamera(self, toolnumber):
+		camera = []
+		camera[0] = self._settings.get(["camera.x"])
+		camera[1] = self._settings.get(["camera.y"])
+		feed_rate = self._settings.get(["feed_rate"])
+
+		# commands
+		self._printer.commands(self._settings.get(["takeTool".format(toolnumber)]))  # settings string
+		self._printer.commands("G1 X{} Y{} F{}".format(camera[0], camera[1], feed_rate))
+
+	def run_gcode(self):
+		self._printer.commands("M114")
+
+		self._printer.commands("G1 " + "F" + self._settings.get(["feed_rate"]))
+
+
+
 
 	def get_update_information(self):
 		# Define the configuration for your plugin to use with the Software Update

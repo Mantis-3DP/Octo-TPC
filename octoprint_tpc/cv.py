@@ -77,6 +77,7 @@ def findValues():
 
 		frame = putText(frame, 'timestamp', offsety=99)
 		frame = putText(frame, 'number of circles: {}'.format(len(keypoints)), offsety=4)
+		position()
 
 		cv2.imshow("Video", frame)
 		if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -130,21 +131,21 @@ def position():
 	im = saveFrame()
 	keypoints = createDetector().detect(im)
 	if len(keypoints) == 1:
-		xy = np.around(keypoints[0].pt)
-		r = np.around(keypoints[0].size / 2)
+		xyr = np.array(np.around(keypoints[0].pt, 0), np.around(keypoints[0].size / 2, 0))
+		print(xyr)
 		text = "locating position successful"
 		success = True
 	elif len(keypoints) > 1:
-		xy = [0, 0]
-		r = 0
+		xyr = [0, 0, 0]
+
 		text = "multiple positions found, check your settings"
 		success = False
 	elif len(keypoints) == 0:
-		xy = [0, 0]
-		r = 0
+		xyr = [0, 0, 0]
+
 		text = "no position found, check your settings"
 		success = False
-	return xy, r, success
+	return xyr, success
 
 
 

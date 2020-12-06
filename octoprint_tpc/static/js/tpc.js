@@ -14,8 +14,9 @@ $(function() {
         self.started = ko.observable();
         self.stage = ko.observable();
 
-
+        self.currentTool = ko.observable()
         self.count = ko.observable();
+        self.feed_rate = ko.observable();
         self.current_step = ko.observable();
         self.offsetCX = ko.observable();
         self.offsetCY = ko.observable();
@@ -24,38 +25,38 @@ $(function() {
         self.offsetTY = ko.observable();
         self.offsetTZ = ko.observable();
 
+        // noch umbenennen
+        self.gcode_cmds = ko.observableArray();
+
 
 // onDataUpdaterPluginMessage
-        self.increase = function() {
-            self.count(self.offsetTX());
-        }
-
-        self.increase2 = function() {
-            console.log("increase called!")
-            var currentValue = self.count();
-            self.count(currentValue + 1);
-        }
 
         self.start_calibration = function() {
             if (!self.started()){
                 self.started(true);
                 self.stage("Next");
                 self.offsetTX(-1);
+                //self.gcode_cmds.push("G28");
 
             }
             else{
                 switch(self.current_step()) {
                     case 0:
-                        self.offsetTX(1);
+                        self.gcode_cmds.push("G1 X0 Y0 Z0");
+                        self.gcode_cmds.push("G28 X0 Y0 Z0");
+                        self.gcode_cmds.push("G90");
+                        self.gcode_cmds.push("G1 X"+self.offsetCX()+" Y"+ self.offsetCY()+" F"+ self.feed_rate());
+                        // self.sendToPy(self.current_step());
                         break;
                     case 1:
-                        self.offsetTY(1);
+                        self.gcode_cmds.push("G28 X0 Y0 Z0");
+
+
                         break;
                     case 2:
-                        self.offsetTZ(1);
+                        self.getPosition()
                         break;
                     case 3:
-                        self.offsetTX(2);
                         break;
                     default:
                         console.log("Problem in the switch section");
@@ -63,22 +64,26 @@ $(function() {
                 }
                 self.current_step(self.current_step()+1);
             }
+            OctoPrint.control.sendGcode(self.gcode_cmds());
+            self.gcode_cmds([])
 
         }
 
-        self.checkStatus = function() {
-            self.offsetTX(100);
+        self.getPosition = function() {
+            //self.offsetTX(100);
 			$.ajax({
 				url: API_BASEURL + "plugin/tpc",
 				type: "GET",
 				dataType: "json",
-                data: {stopProcessing: true},
+                data: {getPosition: true},
                 contentType: "application/json; charset=UTF-8"
                 }).done(function(data){
                     if (data.success){
-                        self.offsetTY(50);
+                        self.offsetTX(data.x);
+                        self.offsetTY(data.y);
+                        self.settings.settings.plugins.tpc.tool0.z(50);
                     } else if (!data.success) {
-                        self.offsetTY(40)
+                        self.offsetTZ(40);
                     }
             });
 		};
@@ -92,21 +97,51 @@ $(function() {
             self.offsetTZ(self.settings.settings.plugins.tpc.tool0.z());
         }
 
-
-        self.ledOn = function() {
+//      self.sendToPy(self.current_step());
+        self.sendToPy = function(step) {
             $.ajax({
                 url:         "/api/plugin/tpc",
                 type:        "POST",
                 contentType: "application/json",
                 dataType:    "json",
                 headers:     {"X-Api-Key": UI_API_KEY},
-                data:        JSON.stringify({"command": "led", "state": self.stage()}),
+                data:        JSON.stringify({"command": "sendToPy", "step": step}),
+                complete: function (data) {
+                }
+            });
+            return true;
+        }
+
+
+        self.ledOn = function(wert) {
+            $.ajax({
+                url:         "/api/plugin/tpc",
+                type:        "POST",
+                contentType: "application/json",
+                dataType:    "json",
+                headers:     {"X-Api-Key": UI_API_KEY},
+                data:        JSON.stringify({"command": "led", "wert": wert}),
                 complete: function () {
                 }
             });
             return true;
         }
 
+              // this function should issue a function in cv.py to take a picture -> save position of orifice
+        self.nozzle_position = function(test) {
+            $.ajax({
+                url:         "/api/plugin/tpc",
+                type:        "POST",
+                contentType: "application/json",
+                dataType:    "json",
+                headers:     {"X-Api-Key": UI_API_KEY},
+                data:        JSON.stringify({"command": "nozzle_position", "wert": test}),
+                complete: function (data) {
+                    self.wertanpassung(data)
+                }
+            });
+            return true;
+        }
 /*
 
         self.multiincrease = function() {
@@ -138,21 +173,7 @@ $(function() {
         }
 
 
-        // this function should issue a function in cv.py to take a picture -> save position of orifice
-        self.nozzle_position = function(test) {
-            $.ajax({
-                url:         "/api/plugin/tpc",
-                type:        "POST",
-                contentType: "application/json",
-                dataType:    "json",
-                headers:     {"X-Api-Key": UI_API_KEY},
-                data:        JSON.stringify({"command": "nozzle_position", "wert": test}),
-                complete: function (data) {
-                    self.wertanpassung(data)
-                }
-            });
-            return true;
-        }
+
 
         // cali
         self.start_cali = function()  {
@@ -191,12 +212,15 @@ $(function() {
             self.stage("Start")
             self.started(false)
             self.current_step(0)
+            self.feed_rate(self.settings.settings.plugins.tpc.feed_rate());
             self.offsetCX(self.settings.settings.plugins.tpc.camera.x()); // offsetX = tpc.camera aus den system defaults
             self.offsetCY(self.settings.settings.plugins.tpc.camera.y());
             self.offsetCZ(self.settings.settings.plugins.tpc.camera.z());
             self.offsetTX(self.settings.settings.plugins.tpc.tool0.x()); // offsetX = tpc.camera aus den system defaults
             self.offsetTY(self.settings.settings.plugins.tpc.tool0.y());
             self.offsetTZ(self.settings.settings.plugins.tpc.tool0.z());
+            self.currentTool(0);
+            self.gcode_cmds([]);
 
         }
 
@@ -204,6 +228,12 @@ $(function() {
             self.offsetTX(self.settings.settings.plugins.tpc.tool0.x()); // offsetX = tpc.camera aus den system defaults
             self.offsetTY(self.settings.settings.plugins.tpc.tool0.y());
             self.offsetTZ(self.settings.settings.plugins.tpc.tool0.z());
+            self.feed_rate(self.settings.settings.plugins.tpc.feed_rate());
+            //self.currentTool(self.settings.settings.plugins.tpc.currentTool());
+        }
+        self.onEventToolChange = function (payload) {
+            self.currentTool(payload["new"])
+            //self.currentTool(self.settings.settings.plugins.tpc.currentTool());
         }
 
 

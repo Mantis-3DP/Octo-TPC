@@ -6,12 +6,12 @@
             <input type="text" class="input-block-level" data-bind="value: settings.plugins.tpc.url">
         </div>
     </div>
-    <!-- camera settings         -->
+    <!-- printer settings         -->
     <div class="accordion-group">
         <div class="accordion-heading">
-            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#camera-settings"><h4>{{ _('Camera') }}</h4></a>
+            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#printer-settings"><h4>{{ _('Camera') }}</h4></a>
         </div>
-        <div id="camera-settings" class="accordion-body collapse in">
+        <div id="printer-settings" class="accordion-body collapse in">
             <div class="accordion-inner">
                 <div class="row-fluid">
                     <div class="span4"><h4>{{ _('Camera position') }}</h4></div>
@@ -46,6 +46,18 @@
                         </div>
                     </div>
                 </div>
+                <div class="row-fluid">
+                    <div class="span12">Feedspeed</div>
+                </div>
+                <div class="row-fluid">
+                    <label class="control-label" for="feed_rate">Feedrate</label>
+                    <div class="controls">
+                        <div class="input-append">
+                            <input id="feed_rate" type="number" step="100" class="input-mini text-right" data-bind="value: settings.plugins.tpc.feed_rate">
+                            <span class="add-on">mm\min</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -57,7 +69,7 @@
         <div id="offset-settings" class="accordion-body collapse in">
             <div class="accordion-inner">
                 <div class="row-fluid">
-                    <div class="span4"><h4>{{ _('Camera position') }}</h4></div>
+                    <div class="span4"><h4>{{ _('Tool 0') }}</h4></div>
                 </div>
                 <div class="row-fluid">
                     <div class="span12">You can fill the position manually</div>
@@ -66,7 +78,7 @@
                     <label class="control-label" for="offset.tool0.x">{{ _('X') }}</label>
                     <div class="controls">
                         <div class="input-append">
-                            <input id="offset.tool0.x" type="number" step="1" class="input-mini text-right" data-bind="value: settings.plugins.tpc.tool0.x">
+                            <input id="offset.tool0.x" type="number" step="0.01" class="input-mini text-right" data-bind="value: settings.plugins.tpc.tool0.x">
                             <span class="add-on">mm</span>
                         </div>
                     </div>
@@ -75,7 +87,7 @@
                     <label class="control-label" for="offset.tool0.y">Y</label>
                     <div class="controls">
                         <div class="input-append">
-                            <input id="offset.tool0.y" type="number" step="1" class="input-mini text-right" data-bind="value: settings.plugins.tpc.tool0.y">
+                            <input id="offset.tool0.y" type="number" step="0.01" class="input-mini text-right" data-bind="value: settings.plugins.tpc.tool0.y">
                             <span class="add-on">mm</span>
                         </div>
                     </div>
@@ -84,7 +96,7 @@
                     <label class="control-label" for="offset.tool0.z">Z</label>
                     <div class="controls">
                         <div class="input-append">
-                            <input id="offset.tool0.z" type="number" step="1" class="input-mini text-right" data-bind="value: settings.plugins.tpc.tool0.z">
+                            <input id="offset.tool0.z" type="number" step="0.01" class="input-mini text-right" data-bind="value: settings.plugins.tpc.tool0.z">
                             <span class="add-on">mm</span>
                         </div>
                     </div>
@@ -92,6 +104,50 @@
             </div>
         </div>
     </div>
+
+        <!-- gcode settings         -->
+    <div class="accordion-group">
+        <div class="accordion-heading">
+            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#gcode-settings"><h4>{{ _('Gcode Settings') }}</h4></a>
+        </div>
+        <div id="gcode-settings" class="accordion-body collapse in">
+            <div class="accordion-inner">
+                <div class="row-fluid">
+                    <div class="span4"><h4>{{ _('Gcode to take Tool') }}</h4></div>
+                </div>
+                <div class="row-fluid">
+                    <div class="span12">use curly brackets as filler of the tool number</div>
+                </div>
+                <div class="row-fluid">
+                    <label class="control-label" for="gcode.tool0">{{ _('Tool 0') }}</label>
+                    <div class="controls">
+                        <div class="input-append">
+                            <input id="gcode.tool0" type="text" class="input text-left" data-bind="value: settings.plugins.tpc.takeTool" placeholder="T{}">
+                        </div>
+                    </div>
+                </div>
+                <div class="row-fluid">
+                    <label class="control-label" for="offset.tool0.y">Y</label>
+                    <div class="controls">
+                        <div class="input-append">
+                            <input id="offset.tool0.y" type="number" step="0.01" class="input-mini text-right" data-bind="value: settings.plugins.tpc.tool0.y">
+                            <span class="add-on">mm</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row-fluid">
+                    <label class="control-label" for="offset.tool0.z">Z</label>
+                    <div class="controls">
+                        <div class="input-append">
+                            <input id="offset.tool0.z" type="number" step="0.01" class="input-mini text-right" data-bind="value: settings.plugins.tpc.tool0.z">
+                            <span class="add-on">mm</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </form>
 
 
