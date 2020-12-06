@@ -18,15 +18,25 @@ $(function() {
         self.count = ko.observable();
         self.feed_rate = ko.observable();
         self.current_step = ko.observable();
+        // change to array
         self.offsetCX = ko.observable();
         self.offsetCY = ko.observable();
         self.offsetCZ = ko.observable();
         self.offsetTX = ko.observable();
         self.offsetTY = ko.observable();
         self.offsetTZ = ko.observable();
-
+        self.posTX = ko.observable();
+        self.posTY = ko.observable();
         // noch umbenennen
         self.gcode_cmds = ko.observableArray();
+
+        self.posX = ko.computed(function(){return Number(self.offsetCX()) + Number(self.offsetTX())});
+        self.posY = ko.computed(function(){return Number(self.offsetCY()) + Number(self.offsetTY())});
+
+        self.pxPos = ko.observableArray();
+        self.pxPos = ko.observableArray();
+
+        self.moveDis = ko.observableArray();
 
 
 // onDataUpdaterPluginMessage
@@ -40,32 +50,49 @@ $(function() {
 
             }
             else{
+
+                self.sendToPy(self.current_step);
                 switch(self.current_step()) {
                     case 0:
-                        self.gcode_cmds.push("G1 X0 Y0 Z0");
-                        self.gcode_cmds.push("G28 X0 Y0 Z0");
+                        // goto camera position + tool offset
+ /*                       self.gcode_cmds.push("G1 X0 Y0 Z0");
                         self.gcode_cmds.push("G90");
-                        self.gcode_cmds.push("G1 X"+self.offsetCX()+" Y"+ self.offsetCY()+" F"+ self.feed_rate());
-                        // self.sendToPy(self.current_step());
+                        self.gcode_cmds.push("G1 X"+self.posX()+" Y"+ self.posY()+" F"+ self.feed_rate());
+                        */// self.sendToPy(self.current_step());
                         break;
                     case 1:
-                        self.gcode_cmds.push("G28 X0 Y0 Z0");
-
-
+/*                        self.getPosition();*/
                         break;
                     case 2:
-                        self.getPosition()
+
+                        // self.gcode_cmds.push(self.tempPos()[0]);
+/*                        self.gcode_cmds.push("G91");
+                        self.gcode_cmds.push("G1 X"+ self.moveDis()[0] +" F"+ self.feed_rate());
+                        self.gcode_cmds.push("G90");*/
                         break;
                     case 3:
+                        //self.getPosition();
+                        break;
+                    case 5:
+
+/*                       self.gcode_cmds.push("G91");
+                        self.gcode_cmds.push("G1 Y"+ self.moveDis()[1] +" F"+ self.feed_rate());
+                        self.gcode_cmds.push("G90");*/
+                        break;
+                    case 6:
+                      //  self.getPosition();
+                        break;
+                    case 7:
                         break;
                     default:
                         console.log("Problem in the switch section");
                         break;
                 }
-                self.current_step(self.current_step()+1);
+                self.increaseStep();
             }
-            OctoPrint.control.sendGcode(self.gcode_cmds());
-            self.gcode_cmds([])
+/*            OctoPrint.control.sendGcode(self.gcode_cmds());
+            self.gcode_cmds([]);*/
+
 
         }
 
@@ -79,12 +106,14 @@ $(function() {
                 contentType: "application/json; charset=UTF-8"
                 }).done(function(data){
                     if (data.success){
-                        self.offsetTX(data.x);
-                        self.offsetTY(data.y);
+                        self.tempPos([data.x, data.y])
+                        // self.posTX(data.x);
+                        // self.posTY(data.y);
                         self.settings.settings.plugins.tpc.tool0.z(50);
                     } else if (!data.success) {
                         self.offsetTZ(40);
                     }
+
             });
 		};
 
@@ -142,12 +171,15 @@ $(function() {
             });
             return true;
         }
+
+        self.increaseStep = function() {
+            var currentValue = self.current_step();
+            self.current_step(currentValue + 1);
+        }
+
 /*
 
-        self.multiincrease = function() {
-            var currentValue = self.count();
-            self.count(currentValue + 10);
-        }
+
 
         self.decrease = function() {
             var currentValue = self.count();
@@ -219,7 +251,10 @@ $(function() {
             self.offsetTX(self.settings.settings.plugins.tpc.tool0.x()); // offsetX = tpc.camera aus den system defaults
             self.offsetTY(self.settings.settings.plugins.tpc.tool0.y());
             self.offsetTZ(self.settings.settings.plugins.tpc.tool0.z());
+            self.posTX(0);
+            self.posTY(0);
             self.currentTool(0);
+            self.moveDis([2, 2]);
             self.gcode_cmds([]);
 
         }

@@ -11,6 +11,7 @@ from __future__ import absolute_import
 
 import octoprint.plugin
 import flask
+import numpy as np
 import time
 import octoprint_tpc.cv as multi
 
@@ -42,6 +43,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			feed_rate=1200,
 			# camera position
 			camera=dict(x=100, y=160, z=20),
+			camerastep=dict(x=2, y=2),
 			# Offsets in mm
 			tool0=dict(x=1, y=6, z=-0.3),
 			tool1=dict(x=6, y=3, z=-0.8),
@@ -78,11 +80,8 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 	def on_api_get(self, request):
 		if request.args.get("getPosition"):
 			self._logger.debug(request.args)
-
 			xyr, success = multi.position()
 			response = dict(success=success, x=xyr[0], y=xyr[1])
-			self._printer.commands("M114")
-
 			return flask.jsonify(response)
 
 	def on_api_command(self, command, data):
@@ -118,21 +117,62 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 		else:
 			self._logger.info(event, payload)
 
-	def toolTocamera(self, toolnumber):
-		camera = []
-		camera[0] = self._settings.get(["camera.x"])
-		camera[1] = self._settings.get(["camera.y"])
+	def toolToOffset(self, choice):
+		offset = []
+		offset[0] = self._settings.get([choice+".x"])
+		offset[1] = self._settings.get([choice+".y"])
 		feed_rate = self._settings.get(["feed_rate"])
 
 		# commands
-		self._printer.commands(self._settings.get(["takeTool".format(toolnumber)]))  # settings string
-		self._printer.commands("G1 X{} Y{} F{}".format(camera[0], camera[1], feed_rate))
+		# self._printer.commands(self._settings.get(["takeTool".format(toolnumber)]))  # settings string
+		self._printer.commands("G1 X{} Y{} F{}".format(offset[0], offset[1], feed_rate))
+		return
 
 	def run_gcode(self):
 		self._printer.commands("M114")
 
 		self._printer.commands("G1 " + "F" + self._settings.get(["feed_rate"]))
 
+	def calcOffset(self, xyr0, xyr1, xyr2):
+		pos0 = np.array(xyr0)
+		pos1 = np.array(xyr1)
+		pos2 = np.array(xyr2)
+		vecCamera = [self.toolToOffset("camerastep.x"), self.toolToOffset("camerastep.y")]
+		scaleX = np.linalg.norm(vecCamera)  # length vector the tool moved above the camera
+		scaleToolX = np.linalg.norm(pos1-pos0)
+		scaleToolY = np.linalg.norm(pos2-pos1)
+
+		# Translation
+		matTrans= np.eye(3, dtype=int)
+		matTrans[0, 2] = pos0[0]
+		matTrans[1, 2] = pos0[1]
+
+
+
+
+
+
+	def calibration(self, step):
+		xyr0 = [], xyr1 = [], xyr2 = []
+		if step == "1":
+			self.toolToOffset("camera")
+		elif step == "2":
+			xyr0, success = multi.position()
+		elif step == "3":
+			toolNumber: int = 0
+			self.toolToOffset("tool"+toolNumber)
+		elif step == "4":
+			xyr1, success = multi.position()
+		elif step == "5":
+			self.toolToOffset("camerastep")
+		elif step == "6":
+			xyr2, success = multi.position()
+		elif step == "7":
+			if xyr0 == [] or xyr1 == [] or xyr2 == []:
+				print("coordinates are missing")
+			else:
+				self.calcOffset(xyr0, xyr1, xyr2)
+		return
 
 
 
