@@ -1,13 +1,5 @@
 import numpy as np
 
-
-xyr0 = [10, 10]
-xyr2 = [40, 50]
-
-
-
-import numpy as np
-
 def unit_vector(vector):
     """ Returns the unit vector of the vector.  """
     return vector / np.linalg.norm(vector)
@@ -17,12 +9,11 @@ def angle_between(v1, v2):
     v2_u = unit_vector(v2)
     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
-
 def calcOffset(xyr0, xyr2):
 	pos0 = np.array(xyr0)
 	pos2 = np.array(xyr2)
-	vecCamera0 = np.array([0, 0])
-	vecCamera1 = np.array([4, 3])
+	vecCamera0 = np.array([160, 130])
+	vecCamera1 = np.array([163, 134])
 
 	v0 = pos2 - pos0
 	v1 = vecCamera1-vecCamera0
@@ -37,8 +28,6 @@ def calcOffset(xyr0, xyr2):
 	matTransBack[1, 2] = -pos0[1]
 
 	# Scale
-
-
 	scaleTool = np.linalg.norm(v0)
 	scaleCamera = np.linalg.norm(v1)  # length vector the tool moved above the camera
 
@@ -48,13 +37,9 @@ def calcOffset(xyr0, xyr2):
 	matScale[1, 1] = scaleCamera/scaleTool
 
 	# mirror
-
 	matMir = -np.eye(3, dtype=int)
 
 	# Rotation
-	v0 = pos2 - pos0
-	v1 = vecCamera1-vecCamera0
-
 	angle0 = angle_between(v0, v1)
 
 	matRot = np.zeros([3, 3])
@@ -75,7 +60,16 @@ def calcOffset(xyr0, xyr2):
 	offset = np.dot(matTransBackScaleRotTrans, np.append(pos0-vecCamera0, 0))
 	# TODO: hier ist noch etwas falsch
 	offset = (offset[0:2])
-	print(offset)
 	return offset
 
-calcOffset(xyr0, xyr2)
+
+if __name__ == '__main__':
+    # this script is being run directly in the interpreter
+    # i.e.  python this_script.py
+    #
+    # this block will not be executed when this is import'ed
+
+	xyr0 = [129, 200]
+	xyr2 = [209, 260]
+
+	calcOffset(xyr0, xyr2)

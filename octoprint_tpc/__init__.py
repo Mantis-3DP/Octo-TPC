@@ -14,6 +14,7 @@ import flask
 import numpy as np
 import time
 import octoprint_tpc.cv as multi
+import octoprint_tpc.offsetCalc as oC
 
 
 class TpcPlugin(octoprint.plugin.SettingsPlugin,
@@ -128,50 +129,53 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 		self._printer.commands("G1 X{} Y{} F{}".format(offset[0], offset[1], feed_rate))
 		return
 
-	def run_gcode(self):
-		self._printer.commands("M114")
-
-		self._printer.commands("G1 " + "F" + self._settings.get(["feed_rate"]))
-
-	def calcOffset(self, xyr0, xyr1, xyr2):
-		pos0 = np.array(xyr0)
-		pos1 = np.array(xyr1)
-		pos2 = np.array(xyr2)
-		vecCamera = [self.toolToOffset("camerastep.x"), self.toolToOffset("camerastep.y")]
-		scaleX = np.linalg.norm(vecCamera)  # length vector the tool moved above the camera
-		scaleToolX = np.linalg.norm(pos1-pos0)
-		scaleToolY = np.linalg.norm(pos2-pos1)
-
-		# Translation
-		matTrans= np.eye(3, dtype=int)
-		matTrans[0, 2] = pos0[0]
-		matTrans[1, 2] = pos0[1]
-
-
-
-
+	def sendOffset(self, offset):
+		# SET_GCODE_OFFSET [X=<pos>] [Y=<pos>] [Z=<pos>] [MOVE=1 [MOVE_SPEED=<speed>]]
+		self._printer.commands("SET_GCODE_OFFSET X{} Y{}".format(offset[0], offset[1]))
+		self._printer.commands("SAVE_CONFIG")
 
 
 	def calibration(self, step):
-		xyr0 = [], xyr1 = [], xyr2 = []
+		xyr0 = [], xyr1 = [], xyr2 = [], offset = []
+
 		if step == "1":
 			self.toolToOffset("camera")
+
 		elif step == "2":
 			xyr0, success = multi.position()
+			if success == False:
+				self._logger.info("No Point recognized")
+
 		elif step == "3":
 			toolNumber: int = 0
 			self.toolToOffset("tool"+toolNumber)
+
 		elif step == "4":
 			xyr1, success = multi.position()
+
 		elif step == "5":
 			self.toolToOffset("camerastep")
+
 		elif step == "6":
 			xyr2, success = multi.position()
+
 		elif step == "7":
 			if xyr0 == [] or xyr1 == [] or xyr2 == []:
-				print("coordinates are missing")
+				self._logger.info("coordinates are missing")
 			else:
-				self.calcOffset(xyr0, xyr1, xyr2)
+				offset = self.calcOffset(xyr0, xyr2)
+				if len(offset) == 0:
+					self._logger.info("no offset calculated")
+
+		elif step == "8":
+			offset = self.showOffset()
+
+		elif step == "9":
+			self.saveOffset(offset)
+
+
+		else:
+			self._logger.info("no available step was used")
 		return
 
 
