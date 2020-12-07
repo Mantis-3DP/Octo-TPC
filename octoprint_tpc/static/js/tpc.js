@@ -84,6 +84,10 @@ $(function() {
                         break;
                     case 7:
                         break;
+                    case 8:
+                        break;
+                    case 9:
+                        break;
                     default:
                         console.log("Problem in the switch section");
                         break;

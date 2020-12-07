@@ -99,8 +99,8 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			# lol = cv.double(bOn)
 			# self._printer.commands(5)  # sendet ins terminal
 			# self._logger.info("Hello World! (more: {}){}".format(success, datatype))
-			self._logger.info(self._settings.get(["feed_rate"]))
-			self._printer.commands("G1 " + "F" + self._settings.get(["feed_rate"]))
+			# self._logger.info(self._settings.get(["feed_rate"]))
+			# self._printer.commands("G1 " + "F" + self._settings.get(["feed_rate"]))
 		# + self._settings.get("feed_rate")
 		elif command == "nozzle_position":
 
@@ -110,24 +110,27 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 	##~~ Softwareupdate hook
 	# Use the on_event hook to extract XML data every time a new file has been loaded by the user
 	def on_event(self, event, payload):
+		# TODO: instead search for M114 in terminal output
 		if event == "PositionUpdate":
 			self.x = payload["x"]
 			self.y = payload["y"]
 			self.z = payload["z"]
 			self._logger.info("X" + str(payload["x"]) + " Y" + str(payload["y"]) + " Z" + str(payload["z"]))
-		else:
-			self._logger.info(event, payload)
 
-	def toolToOffset(self, choice):
+		# else:
+		# 	self._logger.info(event, payload)
+
+	def toolToOffset(self, choice, go):
 		offset = []
 		offset[0] = self._settings.get([choice+".x"])
 		offset[1] = self._settings.get([choice+".y"])
 		feed_rate = self._settings.get(["feed_rate"])
 
+		if go == True:
 		# commands
 		# self._printer.commands(self._settings.get(["takeTool".format(toolnumber)]))  # settings string
-		self._printer.commands("G1 X{} Y{} F{}".format(offset[0], offset[1], feed_rate))
-		return
+			self._printer.commands("G1 X{} Y{} F{}".format(offset[0], offset[1], feed_rate))
+		return offset
 
 	def sendOffset(self, offset):
 		# SET_GCODE_OFFSET [X=<pos>] [Y=<pos>] [Z=<pos>] [MOVE=1 [MOVE_SPEED=<speed>]]
@@ -136,43 +139,59 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 
 
 	def calibration(self, step):
-		xyr0 = [], xyr1 = [], xyr2 = [], offset = []
+		xyr0 = [], xyr1 = [], xyr2 = [], offset = [], tempOffset= [], exOffset= [], stepsTaken =[]
 
-		if step == "1":
-			self.toolToOffset("camera")
+		if step == "0":
+			self.toolToOffset("camera", True)
+			np.append(stepsTaken, step)
+
+		elif step == "1":
+			# position the nozzle above the camera
+			self._printer.commands("M114")
+			[xCamera, yCamera] =  self.toolToOffset("camera", False)
+			tempOffset[0] = self.x - xCamera
+			tempOffset[1] = self.y - yCamera
 
 		elif step == "2":
 			xyr0, success = multi.position()
 			if success == False:
 				self._logger.info("No Point recognized")
+			np.append(stepsTaken, step)
 
 		elif step == "3":
 			toolNumber: int = 0
-			self.toolToOffset("tool"+toolNumber)
+			self.toolToOffset("tool"+toolNumber, True)
+			np.append(stepsTaken, step)
 
 		elif step == "4":
 			xyr1, success = multi.position()
+			np.append(stepsTaken, step)
 
 		elif step == "5":
-			self.toolToOffset("camerastep")
+			self.toolToOffset("camerastep", True)
+			np.append(stepsTaken, step)
 
 		elif step == "6":
 			xyr2, success = multi.position()
+			np.append(stepsTaken, step)
 
 		elif step == "7":
 			if xyr0 == [] or xyr1 == [] or xyr2 == []:
 				self._logger.info("coordinates are missing")
 			else:
-				offset = self.calcOffset(xyr0, xyr2)
-				if len(offset) == 0:
+				exOffset = self.calcOffset(xyr0, xyr2)
+				if len(exOffset) == 0:
 					self._logger.info("no offset calculated")
+			np.append(stepsTaken, step)
 
 		elif step == "8":
-			offset = self.showOffset()
+			offset = tempOffset + exOffset
+			# self.showOffset()
+			np.append(stepsTaken, step)
 
-		elif step == "9":
+		elif step == "9" :
 			self.saveOffset(offset)
-
+			np.append(stepsTaken, step)
 
 		else:
 			self._logger.info("no available step was used")
