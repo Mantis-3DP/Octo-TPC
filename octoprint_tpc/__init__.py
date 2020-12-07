@@ -146,6 +146,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			np.append(stepsTaken, step)
 
 			# Die Aufnahme ist an der Stelle X270 Y220
+			# untere linke Ecke des Camerabildes
 
 		elif step == "1":
 			########################################
