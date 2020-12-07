@@ -13,7 +13,7 @@ def calcOffset(xyr0, xyr2):
 	pos0 = np.array(xyr0)
 	pos2 = np.array(xyr2)
 	vecCamera0 = np.array([160, 130])
-	vecCamera1 = np.array([163, 134])
+	vecCamera1 = np.array([164, 133])
 
 	v0 = pos2 - pos0
 	v1 = vecCamera1-vecCamera0
@@ -60,6 +60,7 @@ def calcOffset(xyr0, xyr2):
 	offset = np.dot(matTransBackScaleRotTrans, np.append(pos0-vecCamera0, 0))
 	# TODO: hier ist noch etwas falsch
 	offset = (offset[0:2])
+	print(offset)
 	return offset
 
 

@@ -145,30 +145,52 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			self.toolToOffset("camera", True)
 			np.append(stepsTaken, step)
 
+			# Die Aufnahme ist an der Stelle X270 Y220
+
 		elif step == "1":
-			# position the nozzle above the camera
+			########################################
+			#           TAKE TOOL                  #
+			# position the nozzle above the camera #
+			########################################
 			self._printer.commands("M114")
 			[xCamera, yCamera] =  self.toolToOffset("camera", False)
-			tempOffset[0] = self.x - xCamera
-			tempOffset[1] = self.y - yCamera
+			#self.x = 265
+			#self.y = 200
+			# das Tool steht vor und etwas nach rechts
+			tempOffset[0] =  xCamera - self.x
+			tempOffset[1] =  yCamera - self.y
+			# tempOffset[0] = 270 - 265 = 5
+			# tempOffset[1] = 220 - 200 = 20
+			# in x 5mm
+			# in y 20mm
+			# Von dieser Stelle will ich dann den Abstand zur unteren linken Ecke des Camerabildes
 
 		elif step == "2":
 			xyr0, success = multi.position()
+
+			# Nun weiß ich, dass bei einem offset von x5 y20 die Nozzle an der Position xc300 yc150 auf Caera zu sehen
+			# ist. Das ist die Translation vom 0 Punkt
+
 			if success == False:
 				self._logger.info("No Point recognized")
 			np.append(stepsTaken, step)
 
 		elif step == "3":
-			toolNumber: int = 0
-			self.toolToOffset("tool"+toolNumber, True)
+			self.toolToOffset("camerastep", True)
 			np.append(stepsTaken, step)
+			# das Tool fährt nun +x2 +y2 und ist somit an der Stelle
+			# self.x = 267
+			# self.y = 202
 
 		elif step == "4":
 			xyr1, success = multi.position()
 			np.append(stepsTaken, step)
+			# Dann wird wieder ein Bild aufgenommen
+			# xc400 yc250
+			# aus dem Vektor von xc300yc150 zu xc400 yc250 lässt sich die Rotation und pixel pro mm fahrt bestimmen
 
 		elif step == "5":
-			self.toolToOffset("camerastep", True)
+
 			np.append(stepsTaken, step)
 
 		elif step == "6":
@@ -176,10 +198,23 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			np.append(stepsTaken, step)
 
 		elif step == "7":
-			if xyr0 == [] or xyr1 == [] or xyr2 == []:
+			if xyr0 == [] or xyr2 == []:
 				self._logger.info("coordinates are missing")
 			else:
 				exOffset = self.calcOffset(xyr0, xyr2)
+				# aus xc400-xc300 => +xc = 100 damit bewegt sich die Nozzle im Bild mit 100px/mm
+
+				# die Annahme die getroffen werden muss ist, dass die Aufnahme bei einem Offset von x0y0 sich genau in
+				# der unteren linken Ekce der Camera befindet.
+				# Also x270 y220 ist die koordinete der linken unteren Ecke
+				# damit ist der Offset dann
+				# tempOffset[0] = 270 - 265 = 5
+				# tempOffset[1] = 220 - 200 = 20
+				# tempOffset[0] + xc300/100px/mm = 3
+				# tempOffset[1] + xc150/100px/mm = 1,5
+				# offset[0] = 8
+				# offset[1] = 21,5
+
 				if len(exOffset) == 0:
 					self._logger.info("no offset calculated")
 			np.append(stepsTaken, step)
