@@ -157,7 +157,7 @@ def position(webcamUrl):
 
 		text = "no position found, check your settings"
 		success = False
-	return xyr, success, width, height
+	return xyr, success, width, height, text
 
 
 

@@ -191,9 +191,9 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 		# Von dieser Stelle will ich dann den Abstand zur unteren linken Ecke des Camerabildes
 
 		elif step == "2":
-			self.xyr0, success, width, height = multi.position(self.webcamUrl)
+			self.xyr0, success, width, height, text = multi.position(self.webcamUrl)
 			self.resolution = [width, height]
-
+			self._logger.info(text)
 			# hier mit will ich die Distanz zwischen der Momentanen Position der Camera relativ zur Aufnahme und der neuen
 			# Position des Tools
 
