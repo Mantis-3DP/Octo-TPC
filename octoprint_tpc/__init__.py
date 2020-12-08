@@ -149,6 +149,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			self.xyr0 = np.zeros([2])
 			self.xyr1 = np.zeros([2])
 			self.offset = np.zeros([2])
+
 			self.tempOffset = np.zeros([2])
 			self.exOffset = np.zeros([2])
 			self.stepsTaken = []
@@ -158,6 +159,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			self.xyCamera = self._settings.get(["camera"])
 
 			self._printer.commands("T2")
+
 
 		elif step == "1":
 			########################################
