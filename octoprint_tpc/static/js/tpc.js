@@ -54,6 +54,7 @@ $(function() {
                 }
                 else if (self.current_step() === 7) {
                     self.getPosition();
+                    self.stage(self.current_step());
                 }
             self.increaseStep();
             }

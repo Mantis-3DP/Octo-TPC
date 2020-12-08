@@ -140,7 +140,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 
 	def saveOffset(self):
 		# SET_GCODE_OFFSET [X=<pos>] [Y=<pos>] [Z=<pos>] [MOVE=1 [MOVE_SPEED=<speed>]]
-		self._printer.commands("SET_GCODE_OFFSET X{} Y{}".format(self.offset[0], self.offset[1]))
+		self._printer.commands("SET_GCODE_OFFSET X={} Y={}".format(self.offset[0], self.offset[1]))
 		self._printer.commands("SAVE_CONFIG")
 
 	def calibration(self, step):
