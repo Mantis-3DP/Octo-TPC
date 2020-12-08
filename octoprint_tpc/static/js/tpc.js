@@ -42,66 +42,28 @@ $(function() {
 // onDataUpdaterPluginMessage
 
         self.start_calibration = function() {
-            if (!self.started()){
+            if (!self.started()) {
                 self.started(true);
                 self.stage("Next");
-                self.offsetTX(-1);
+                self.sendToPy(self.current_step());
                 //self.gcode_cmds.push("G28");
-
-            }
-            else{
-
-                self.sendToPy(self.current_step);
-                switch(self.current_step()) {
-                    case 0:
-                        // goto camera position + tool offset
- /*                       self.gcode_cmds.push("G1 X0 Y0 Z0");
-                        self.gcode_cmds.push("G90");
-                        self.gcode_cmds.push("G1 X"+self.posX()+" Y"+ self.posY()+" F"+ self.feed_rate());
-                        */// self.sendToPy(self.current_step());
-                        break;
-                    case 1:
-/*                        self.getPosition();*/
-                        break;
-                    case 2:
-
-                        // self.gcode_cmds.push(self.tempPos()[0]);
-/*                        self.gcode_cmds.push("G91");
-                        self.gcode_cmds.push("G1 X"+ self.moveDis()[0] +" F"+ self.feed_rate());
-                        self.gcode_cmds.push("G90");*/
-                        break;
-                    case 3:
-                        //self.getPosition();
-                        break;
-                    case 5:
-
-/*                       self.gcode_cmds.push("G91");
-                        self.gcode_cmds.push("G1 Y"+ self.moveDis()[1] +" F"+ self.feed_rate());
-                        self.gcode_cmds.push("G90");*/
-                        break;
-                    case 6:
-                      //  self.getPosition();
-                        break;
-                    case 7:
-                        break;
-                    case 8:
-                        break;
-                    case 9:
-                        break;
-                    default:
-                        console.log("Problem in the switch section");
-                        break;
+            } else {
+                if (self.current_step() < 7) {
+                    self.stage(self.current_step());
+                    self.sendToPy(self.current_step());
                 }
-                self.increaseStep();
+                else if (self.current_step() === 7) {
+                    self.getPosition();
+                }
+            self.increaseStep();
             }
-/*            OctoPrint.control.sendGcode(self.gcode_cmds());
-            self.gcode_cmds([]);*/
+            /*            OctoPrint.control.sendGcode(self.gcode_cmds());
+                        self.gcode_cmds([]);*/
 
 
         }
 
         self.getPosition = function() {
-            //self.offsetTX(100);
 			$.ajax({
 				url: API_BASEURL + "plugin/tpc",
 				type: "GET",
@@ -110,16 +72,24 @@ $(function() {
                 contentType: "application/json; charset=UTF-8"
                 }).done(function(data){
                     if (data.success){
-                        self.tempPos([data.x, data.y])
-                        // self.posTX(data.x);
-                        // self.posTY(data.y);
-                        self.settings.settings.plugins.tpc.tool0.z(50);
+                        // self.tempPos([data.x, data.y])
+                        self.offsetTX(data.x);
+                        self.offsetTY(data.y);
                     } else if (!data.success) {
                         self.offsetTZ(40);
                     }
 
             });
 		};
+
+        self.saveOffset = function() {
+            self.settings.settings.plugins.tpc.tool0.x(self.offsetTX());
+            self.settings.settings.plugins.tpc.tool0.y(self.offsetTY());
+            self.settings.saveData();
+            self.sendToPy(10)
+
+
+        }
 
         self.stop_calibration = function() {
             self.started(false);

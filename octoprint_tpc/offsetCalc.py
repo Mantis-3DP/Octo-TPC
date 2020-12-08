@@ -9,12 +9,12 @@ def angle_between(v1, v2):
     v2_u = unit_vector(v2)
     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
-def calcOffset(xyr0, xyr2):
-	pos0 = np.array(xyr0)
-	pos2 = np.array(xyr2)
-	vecCamera0 = np.array([160, 130])
-	vecCamera1 = np.array([164, 133])
-
+def calcOffset(xy0, xy1, camerastep, resolution):
+	pos0 = np.array(xy0)
+	pos2 = np.array(xy1)
+	vecCamera0 = np.array([0, 0])
+	vecCamera1 = np.array([camerastep["x"], camerastep["y"]])
+	CameraPos0 = np.array([resolution[0] / 2, resolution[1] / 2])
 	v0 = pos2 - pos0
 	v1 = vecCamera1-vecCamera0
 
@@ -37,7 +37,9 @@ def calcOffset(xyr0, xyr2):
 	matScale[1, 1] = scaleCamera/scaleTool
 
 	# mirror
-	matMir = -np.eye(3, dtype=int)
+	matMir = np.eye(3, dtype=int)
+	matMirY = matMir
+	matMirY[1, 1] = -1
 
 	# Rotation
 	angle0 = angle_between(v0, v1)
@@ -52,12 +54,13 @@ def calcOffset(xyr0, xyr2):
 	# matRotScale = np.matmul(matRot, matScale)
 	# matRotScaleTrans = np.matmul(matRotScale, matTrans)
 	# matBackRotScaleTrans = np.matmul(matRotScaleTrans, matTransBack)
+	matMirYScale = np.matmul(matMirY, matScale)
 	matRotTrans = np.matmul(matTrans, matRot)
 	matScaleRotTrans= np.matmul(matScale, matRotTrans)
 	matTransBackScaleRotTrans = np.matmul(matTransBack, matScaleRotTrans)
 	#matTransBRotTrans = np.matmul(matTransBack, matRotTrans)
 
-	offset = np.dot(matTransBackScaleRotTrans, np.append(pos0-vecCamera0, 0))
+	offset = np.dot(matMirYScale, np.append(pos0-CameraPos0, 0))
 	# TODO: hier ist noch etwas falsch
 	offset = (offset[0:2])
 	print(offset)
@@ -70,7 +73,7 @@ if __name__ == '__main__':
     #
     # this block will not be executed when this is import'ed
 
-	xyr0 = [129, 200]
-	xyr2 = [209, 260]
-
-	calcOffset(xyr0, xyr2)
+	xy0 = [480, 240]
+	xy1 = [640, 80]
+	camerastep = dict(x=2, y=2)
+	calcOffset(xy0, xy1, camerastep, resolution=[640, 480])

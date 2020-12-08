@@ -12,7 +12,6 @@ from __future__ import absolute_import
 import octoprint.plugin
 import flask
 import numpy as np
-import time
 import octoprint_tpc.cv as multi
 import octoprint_tpc.offsetCalc as oC
 
@@ -30,8 +29,9 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 	##~~ SettingsPlugin mixi
 	def on_after_startup(self):
 		####### test
-		# self.lol = cv.double(5)
-		# self._logger.info(self.lol)
+		self.x = 0
+		self.y = 0
+		self.z = 0
 
 		self._logger.info("Tpc started! %s" % self._settings.get(["nozzle_temp"]))
 		self._logger.info("Hello World! (more: %s)" % self._settings.get(["url"]))
@@ -81,26 +81,26 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 	def on_api_get(self, request):
 		if request.args.get("getPosition"):
 			self._logger.debug(request.args)
-			xyr, success = multi.position()
-			response = dict(success=success, x=xyr[0], y=xyr[1])
+			# xyr, success = multi.position()
+			response = dict(success=True, x=self.offset[0], y=self.offset[1])
 			return flask.jsonify(response)
 
 	def on_api_command(self, command, data):
+
 		self._logger.info(str(command))
 		if command == "sendToPy":
 			step = "{step}".format(**data)
-			if step == "1":
-				self._logger.info(step)
-			else:
-				self._logger.info("anotior step " + step)
-			# xy, r, success = multi.position()
-			# datatype = "{state}".format(**data)
-			# bOn = "{state}".format(**data)
-			# lol = cv.double(bOn)
-			# self._printer.commands(5)  # sendet ins terminal
-			# self._logger.info("Hello World! (more: {}){}".format(success, datatype))
-			# self._logger.info(self._settings.get(["feed_rate"]))
-			# self._printer.commands("G1 " + "F" + self._settings.get(["feed_rate"]))
+			self._logger.info(step)
+			self.calibration(step)
+
+		# xy, r, success = multi.position()
+		# datatype = "{state}".format(**data)
+		# bOn = "{state}".format(**data)
+		# lol = cv.double(bOn)
+		# self._printer.commands(5)  # sendet ins terminal
+		# self._logger.info("Hello World! (more: {}){}".format(success, datatype))
+		# self._logger.info(self._settings.get(["feed_rate"]))
+		# self._printer.commands("G1 " + "F" + self._settings.get(["feed_rate"]))
 		# + self._settings.get("feed_rate")
 		elif command == "nozzle_position":
 
@@ -112,128 +112,153 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 	def on_event(self, event, payload):
 		# TODO: instead search for M114 in terminal output
 		if event == "PositionUpdate":
-			self.x = payload["x"]
-			self.y = payload["y"]
-			self.z = payload["z"]
+			self.x: float = payload["x"]
+			self.y: float = payload["y"]
+			self.z: float = payload["z"]
 			self._logger.info("X" + str(payload["x"]) + " Y" + str(payload["y"]) + " Z" + str(payload["z"]))
 
-		# else:
-		# 	self._logger.info(event, payload)
+	# else:
+	# 	self._logger.info(event, payload)
 
-	def toolToOffset(self, choice, go):
-		offset = []
-		offset[0] = self._settings.get([choice+".x"])
-		offset[1] = self._settings.get([choice+".y"])
+	def toolToOffset(self, choice):
+		# self._logger.info(choice + ".x")
+		choices = self._settings.get([str(choice)])
+		offset = np.zeros([2])
+		offset[0] = choices["x"]
+		offset[1] = choices["y"]
+
+		# offset[0] = self._settings.get([str(choice) + ".x"])
+		# offset[1] = self._settings.get([str(choice) + ".y"])
 		feed_rate = self._settings.get(["feed_rate"])
 
-		if go == True:
 		# commands
 		# self._printer.commands(self._settings.get(["takeTool".format(toolnumber)]))  # settings string
-			self._printer.commands("G1 X{} Y{} F{}".format(offset[0], offset[1], feed_rate))
-		return offset
+		self._printer.commands("G1 X{} Y{} F{}".format(offset[0], offset[1], feed_rate))
+		self._printer.commands("G90")
+		self._printer.commands("M400")
+		return offset[0:2]
 
-	def sendOffset(self, offset):
+	def saveOffset(self):
 		# SET_GCODE_OFFSET [X=<pos>] [Y=<pos>] [Z=<pos>] [MOVE=1 [MOVE_SPEED=<speed>]]
-		self._printer.commands("SET_GCODE_OFFSET X{} Y{}".format(offset[0], offset[1]))
+		self._printer.commands("SET_GCODE_OFFSET X{} Y{}".format(self.offset[0], self.offset[1]))
 		self._printer.commands("SAVE_CONFIG")
 
-
 	def calibration(self, step):
-		xyr0 = [], xyr1 = [], xyr2 = [], offset = [], tempOffset= [], exOffset= [], stepsTaken =[]
 
 		if step == "0":
-			self.toolToOffset("camera", True)
-			np.append(stepsTaken, step)
+			self.xyr0 = np.zeros([2])
+			self.xyr1 = np.zeros([2])
+			self.offset = np.zeros([2])
+			self.tempOffset = np.zeros([2])
+			self.exOffset = np.zeros([2])
+			self.stepsTaken = []
+			np.append(self.stepsTaken, step)
+			self.resolution = np.zeros([2])
 
-			# Die Aufnahme ist an der Stelle X270 Y220
-			# untere linke Ecke des Camerabildes
+			self.xyCamera = self._settings.get(["camera"])
+
+			self._printer.commands("T2")
 
 		elif step == "1":
 			########################################
 			#           TAKE TOOL                  #
 			# position the nozzle above the camera #
 			########################################
+			# TODO: printer command aus settings
+
+			self._printer.commands("G90")
+			self._printer.commands("G1 X323 F1200")
+			self._printer.commands("G1 Y191 F1200")
+			self._printer.commands("M400")
+
 			self._printer.commands("M114")
-			[xCamera, yCamera] =  self.toolToOffset("camera", False)
-			#self.x = 265
-			#self.y = 200
-			# das Tool steht vor und etwas nach rechts
-			tempOffset[0] =  xCamera - self.x
-			tempOffset[1] =  yCamera - self.y
-			# tempOffset[0] = 270 - 265 = 5
-			# tempOffset[1] = 220 - 200 = 20
-			# in x 5mm
-			# in y 20mm
-			# Von dieser Stelle will ich dann den Abstand zur unteren linken Ecke des Camerabildes
+
+			self._logger.info(self.xyCamera["x"])
+			self._logger.info(self.xyCamera["y"])
+
+		# self.x = 265
+		# self.y = 200
+		# das Tool steht vor und etwas nach rechts
+
+		# tempOffset[0] = 270 - 265 = 5
+		# tempOffset[1] = 220 - 200 = 20
+		# in x 5mm
+		# in y 20mm
+		# Von dieser Stelle will ich dann den Abstand zur unteren linken Ecke des Camerabildes
 
 		elif step == "2":
-			xyr0, success = multi.position()
+			self.xyr0, success, width, height = multi.position()
+			self.resolution = [width, height]
 
+			# hier mit will ich die Distanz zwischen der Momentanen Position der Camera relativ zur Aufnahme und der neuen
+			# Position des Tools
+
+			self.tempOffset[0] = float(self.xyCamera["x"]) - self.x
+			self.tempOffset[1] = float(self.xyCamera["y"]) - self.y
+			self._logger.info(self.tempOffset)
 			# Nun weiß ich, dass bei einem offset von x5 y20 die Nozzle an der Position xc300 yc150 auf Caera zu sehen
 			# ist. Das ist die Translation vom 0 Punkt
 
 			if success == False:
 				self._logger.info("No Point recognized")
-			np.append(stepsTaken, step)
+			np.append(self.stepsTaken, step)
 
 		elif step == "3":
-			self.toolToOffset("camerastep", True)
-			np.append(stepsTaken, step)
-			# das Tool fährt nun +x2 +y2 und ist somit an der Stelle
-			# self.x = 267
-			# self.y = 202
+			self._printer.commands("G91")
+			self.toolToOffset("camerastep")
+			np.append(self.stepsTaken, step)
+		# das Tool fährt nun +x2 +y2 und ist somit an der Stelle
+		# self.x = 267
+		# self.y = 202
 
 		elif step == "4":
-			xyr1, success = multi.position()
-			np.append(stepsTaken, step)
-			# Dann wird wieder ein Bild aufgenommen
-			# xc400 yc250
-			# aus dem Vektor von xc300yc150 zu xc400 yc250 lässt sich die Rotation und pixel pro mm fahrt bestimmen
+			self.xyr1, success, _, _ = multi.position()
+			np.append(self.stepsTaken, step)
+		# Dann wird wieder ein Bild aufgenommen
+		# xc400 yc250
+		# aus dem Vektor von xc300yc150 zu xc400 yc250 lässt sich die Rotation und pixel pro mm fahrt bestimmen
+
 
 		elif step == "5":
 
-			np.append(stepsTaken, step)
+			# TODO: das hier muss anders. so kann man das nicht prüfen
 
-		elif step == "6":
-			xyr2, success = multi.position()
-			np.append(stepsTaken, step)
+			self._logger.info(self.xyr0)
+			self.xyr1 = self.xyr0 + [50, 50]
+			self._logger.info(self.xyr1)
 
-		elif step == "7":
-			if xyr0 == [] or xyr2 == []:
-				self._logger.info("coordinates are missing")
-			else:
-				exOffset = self.calcOffset(xyr0, xyr2)
-				# aus xc400-xc300 => +xc = 100 damit bewegt sich die Nozzle im Bild mit 100px/mm
+			self.exOffset = oC.calcOffset(self.xyr0, self.xyr1, self._settings.get(["camerastep"]), self.resolution)
+			self.offset = self.tempOffset + self.exOffset
+			self.offset = np.round(self.offset, 2)
+			# aus xc400-xc300 => +xc = 100 damit bewegt sich die Nozzle im Bild mit 100px/mm
 
-				# die Annahme die getroffen werden muss ist, dass die Aufnahme bei einem Offset von x0y0 sich genau in
-				# der unteren linken Ekce der Camera befindet.
-				# Also x270 y220 ist die koordinete der linken unteren Ecke
-				# damit ist der Offset dann
-				# tempOffset[0] = 270 - 265 = 5
-				# tempOffset[1] = 220 - 200 = 20
-				# tempOffset[0] + xc300/100px/mm = 3
-				# tempOffset[1] + xc150/100px/mm = 1,5
-				# offset[0] = 8
-				# offset[1] = 21,5
+			# die Annahme die getroffen werden muss ist, dass die Aufnahme bei einem Offset von x0y0 sich genau in
+			# der unteren linken Ekce der Camera befindet.
+			# Also x270 y220 ist die koordinete der linken unteren Ecke
+			# damit ist der Offset dann
+			# tempOffset[0] = 270 - 265 = 5
+			# tempOffset[1] = 220 - 200 = 20
+			# tempOffset[0] + xc300/100px/mm = 3
+			# tempOffset[1] + xc150/100px/mm = 1,5
+			# offset[0] = 8
+			# offset[1] = 21,5
 
-				if len(exOffset) == 0:
-					self._logger.info("no offset calculated")
-			np.append(stepsTaken, step)
+			if len(self.exOffset) == 0:
+				self._logger.info("no offset calculated")
+			np.append(self.stepsTaken, step)
 
-		elif step == "8":
-			offset = tempOffset + exOffset
-			# self.showOffset()
-			np.append(stepsTaken, step)
 
-		elif step == "9" :
-			self.saveOffset(offset)
-			np.append(stepsTaken, step)
+		elif step == "10":
+			self.saveOffset()
+			# self._settings.set(["tool0.x"], self.offset[0])
+			# self._settings.set(["tool0.y"], self.offset[1])
+			# self._settings.save()
+			np.append(self.stepsTaken, step)
 
 		else:
 			self._logger.info("no available step was used")
+
 		return
-
-
 
 	def get_update_information(self):
 		# Define the configuration for your plugin to use with the Software Update

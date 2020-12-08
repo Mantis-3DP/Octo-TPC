@@ -45,7 +45,14 @@ def findValues():
 
 	cap = cv2.VideoCapture('http://192.168.178.26:8081/video.mjpg')
 	while(True):
+
+		width = cap.get(3)  # float
+		height = cap.get(4)  # float
 		ret, im = cap.read()
+
+
+
+
 		minThreshold = cv2.getTrackbarPos("minThreshold", "Video")
 		maxThreshold = cv2.getTrackbarPos("maxThreshold", "Video")
 		c = cv2.getTrackbarPos("C", "Video")
@@ -121,14 +128,19 @@ def testConf():
 
 def saveFrame():
 	cap = cv2.VideoCapture('http://192.168.178.26:8081/video.mjpg')
+	width = 0
+	height =0
 	ret, im = cap.read()
 	if im is None:
 		print("unable to capture frame")
-	return im
+	else:
+		width = cap.get(3)  # float
+		height = cap.get(4)  # float
+	return im, width, height
 
 
 def position():
-	im = saveFrame()
+	im , width, height = saveFrame()
 	keypoints = createDetector().detect(im)
 	if len(keypoints) == 1:
 		xyr = np.array(np.around(keypoints[0].pt, 0), np.around(keypoints[0].size / 2, 0))
@@ -145,7 +157,7 @@ def position():
 
 		text = "no position found, check your settings"
 		success = False
-	return xyr, success
+	return xyr, success, width, height
 
 
 
