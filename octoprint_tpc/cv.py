@@ -150,12 +150,12 @@ def position(webcamUrl):
 	elif len(keypoints) > 1:
 		xyr = [0, 0, 0]
 
-		text = "multiple positions found, check your settings"
+		text = "multiple positions found, check your settings width={} height={}".format(width, height)
 		success = False
 	elif len(keypoints) == 0:
 		xyr = [0, 0, 0]
 
-		text = "no position found, check your settings"
+		text = "no position found, check your settings: width={} height={}".format(width, height)
 		success = False
 	return xyr, success, width, height, text
 

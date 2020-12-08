@@ -105,7 +105,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 		elif command == "nozzle_position":
 			datatype = "{wert}".format(**data)
 			self._logger.info("webcamUrl: {}".format(datatype))
-			self.webcamUrl = datatype
+			self.webcamUrl = "http://127.0.0.1:8080/?action=snapshot"
 
 	##~~ Softwareupdate hook
 	# Use the on_event hook to extract XML data every time a new file has been loaded by the user
