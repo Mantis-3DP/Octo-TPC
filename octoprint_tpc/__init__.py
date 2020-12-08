@@ -189,7 +189,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 		# Von dieser Stelle will ich dann den Abstand zur unteren linken Ecke des Camerabildes
 
 		elif step == "2":
-			self.xyr0, success, width, height = multi.position()
+			self.xyr0, success, width, height = multi.position(self._settings.get(["webcam_streamUrl"]))
 			self.resolution = [width, height]
 
 			# hier mit will ich die Distanz zwischen der Momentanen Position der Camera relativ zur Aufnahme und der neuen
@@ -214,7 +214,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 		# self.y = 202
 
 		elif step == "4":
-			self.xyr1, success, _, _ = multi.position()
+			self.xyr1, success, _, _ = multi.position(self._settings.get(["webcam_streamUrl"]))
 			np.append(self.stepsTaken, step)
 		# Dann wird wieder ein Bild aufgenommen
 		# xc400 yc250

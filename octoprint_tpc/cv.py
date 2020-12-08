@@ -43,7 +43,7 @@ def findValues():
 	cv2.createTrackbar("minInertiaRatio", "Video", 55, 100,nothing)
 
 
-	cap = cv2.VideoCapture('http://192.168.178.26:8081/video.mjpg')
+	cap = cv2.VideoCapture('http://192.168.178.33/webcam/?action=stream')
 	while(True):
 
 		width = cap.get(3)  # float
@@ -126,8 +126,8 @@ def testConf():
 	cv2.destroyAllWindows
 
 
-def saveFrame():
-	cap = cv2.VideoCapture('http://192.168.178.26:8081/video.mjpg')
+def saveFrame(webcamUrl):
+	cap = cv2.VideoCapture(webcamUrl)
 	width = 0
 	height =0
 	ret, im = cap.read()
@@ -139,8 +139,8 @@ def saveFrame():
 	return im, width, height
 
 
-def position():
-	im , width, height = saveFrame()
+def position(webcamUrl):
+	im , width, height = saveFrame(webcamUrl)
 	keypoints = createDetector().detect(im)
 	if len(keypoints) == 1:
 		xyr = np.array(np.around(keypoints[0].pt, 0), np.around(keypoints[0].size / 2, 0))
