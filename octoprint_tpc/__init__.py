@@ -104,6 +104,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 		# + self._settings.get("feed_rate")
 		elif command == "nozzle_position":
 			datatype = "{wert}".format(**data)
+			# TODO: retrieve the correct link
 			self._logger.info("webcamUrl: {}".format(datatype))
 			self.webcamUrl = "http://127.0.0.1:8080/?action=snapshot"
 
@@ -191,6 +192,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 		# Von dieser Stelle will ich dann den Abstand zur unteren linken Ecke des Camerabildes
 
 		elif step == "2":
+			# TODO: redo previous step, if locating nozzle was not successful
 			self.xyr0, success, width, height, text = multi.position(self.webcamUrl)
 			self.resolution = [width, height]
 			self._logger.info(text)
@@ -216,7 +218,9 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 		# self.y = 202
 
 		elif step == "4":
-			self.xyr1, success, _, _ = multi.position(self.webcamUrl)
+			# TODO: Schritt zurück, wenn nozzle nicht gefunden. Dann neu positionieren, M114 machen,
+			#  um dann neue camerastep zu erstellen
+			self.xyr1, success, _, _, _ = multi.position(self.webcamUrl)
 			np.append(self.stepsTaken, step)
 		# Dann wird wieder ein Bild aufgenommen
 		# xc400 yc250

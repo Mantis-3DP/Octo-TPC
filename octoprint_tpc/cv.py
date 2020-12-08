@@ -31,7 +31,7 @@ def putText(frame, text, color=(0, 0, 255), offsetx=0, offsety=0,
 				cv2.FONT_HERSHEY_SIMPLEX, fontScale, color, stroke)
 	return (frame)
 
-def findValues():
+def findValues(webcamUrl):
 	# Trackba
 	cv2.namedWindow("Video")
 	cv2.createTrackbar("minThreshold", "Video", 10, 100,nothing)
@@ -43,7 +43,7 @@ def findValues():
 	cv2.createTrackbar("minInertiaRatio", "Video", 55, 100,nothing)
 
 
-	cap = cv2.VideoCapture('http://192.168.178.33/webcam/?action=stream')
+	cap = cv2.VideoCapture(webcamUrl)
 	while(True):
 
 		width = cap.get(3)  # float
@@ -84,7 +84,7 @@ def findValues():
 
 		frame = putText(frame, 'timestamp', offsety=99)
 		frame = putText(frame, 'number of circles: {}'.format(len(keypoints)), offsety=4)
-		position()
+		position(webcamUrl)
 
 		cv2.imshow("Video", frame)
 		if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -112,9 +112,9 @@ def createDetector(minThreshold=10, maxThreshold=200, minArea=100, minCircularit
 
 
 
-def testConf():
+def testConf(webcamUrl):
 	while(True):
-		im = saveFrame()
+		im = saveFrame(webcamUrl)
 		keypoints = createDetector().detect(im)
 		frame = cv2.drawKeypoints(im, keypoints, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
@@ -166,4 +166,5 @@ if __name__ == '__main__':
     # i.e.  python this_script.py
     #
     # this block will not be executed when this is import'ed
-	findValues()
+	webcamUrl ='http://192.168.178.26:8081/video.mjpg'
+	findValues(webcamUrl)
