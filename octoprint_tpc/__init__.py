@@ -103,9 +103,9 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 		# self._printer.commands("G1 " + "F" + self._settings.get(["feed_rate"]))
 		# + self._settings.get("feed_rate")
 		elif command == "nozzle_position":
-
 			datatype = "{wert}".format(**data)
-			self._logger.info("nozzle_position ausgeführt %s" % datatype)
+			self._logger.info("webcamUrl: {}".format(datatype))
+			self.webcamUrl = datatype
 
 	##~~ Softwareupdate hook
 	# Use the on_event hook to extract XML data every time a new file has been loaded by the user
@@ -158,6 +158,8 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 
 			self.xyCamera = self._settings.get(["camera"])
 
+
+
 			self._printer.commands("T2")
 
 
@@ -189,7 +191,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 		# Von dieser Stelle will ich dann den Abstand zur unteren linken Ecke des Camerabildes
 
 		elif step == "2":
-			self.xyr0, success, width, height = multi.position(self._settings.get(["webcam_streamUrl"]))
+			self.xyr0, success, width, height = multi.position(self.webcamUrl)
 			self.resolution = [width, height]
 
 			# hier mit will ich die Distanz zwischen der Momentanen Position der Camera relativ zur Aufnahme und der neuen
@@ -214,7 +216,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 		# self.y = 202
 
 		elif step == "4":
-			self.xyr1, success, _, _ = multi.position(self._settings.get(["webcam_streamUrl"]))
+			self.xyr1, success, _, _ = multi.position(self.webcamUrl)
 			np.append(self.stepsTaken, step)
 		# Dann wird wieder ein Bild aufgenommen
 		# xc400 yc250
@@ -225,9 +227,9 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 
 			# TODO: das hier muss anders. so kann man das nicht prüfen
 
-			self._logger.info(self.xyr0)
-			self.xyr1 = self.xyr0 + [50, 50]
-			self._logger.info(self.xyr1)
+			# self._logger.info(self.xyr0)
+			# self.xyr1 = self.xyr0 + [50, 50]
+			# self._logger.info(self.xyr1)
 
 			self.exOffset = oC.calcOffset(self.xyr0, self.xyr1, self._settings.get(["camerastep"]), self.resolution)
 			self.offset = self.tempOffset + self.exOffset

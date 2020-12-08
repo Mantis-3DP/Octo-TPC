@@ -37,6 +37,7 @@ $(function() {
         self.pxPos = ko.observableArray();
 
         self.moveDis = ko.observableArray();
+        self.webcamUrl = ko.observable();
 
 
 // onDataUpdaterPluginMessage
@@ -46,6 +47,7 @@ $(function() {
                 self.started(true);
                 self.stage("Next");
                 self.sendToPy(self.current_step());
+                self.nozzle_position(self.webcamUrl());
                 //self.gcode_cmds.push("G28");
             } else {
                 if (self.current_step() < 7) {
@@ -231,6 +233,7 @@ $(function() {
             self.currentTool(0);
             self.moveDis([2, 2]);
             self.gcode_cmds([]);
+            self.webcamUrl(self.settings.webcam_streamUrl());
 
         }
 
@@ -265,6 +268,6 @@ $(function() {
         ["settingsViewModel"],
 
         // Finally, this is the list of selectors for all elements we want this view model to be bound to.
-        ["#tab_plugin_tpc"]
+        ["#tab_plugin_tpc", "#wizard_plugin_corewizard_webcam"]
     ]);
 });
