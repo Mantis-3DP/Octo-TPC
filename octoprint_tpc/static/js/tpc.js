@@ -18,7 +18,8 @@ $(function() {
         self.count = ko.observable();
         self.feed_rate = ko.observable();
         self.current_step = ko.observable();
-        // change to array
+
+        // TODO: change to array
         self.offsetCX = ko.observable();
         self.offsetCY = ko.observable();
         self.offsetCZ = ko.observable();
@@ -38,33 +39,31 @@ $(function() {
 
         self.moveDis = ko.observableArray();
         self.webcamUrl = ko.observable();
+        self.klipperOffsetString = ko.observable();
 
 
 // onDataUpdaterPluginMessage
 
         self.start_calibration = function() {
-            if (!self.started()) {
-                self.started(true);
-                self.stage("Next");
-                self.sendToPy(self.current_step());
+            //self.gcode_cmds.push("G28");
+            if (self.current_step() === 0){
                 self.nozzle_position(self.webcamUrl());
-                //self.gcode_cmds.push("G28");
-            } else {
-                if (self.current_step() < 7) {
-                    self.stage(self.current_step());
-                    self.sendToPy(self.current_step());
-                }
-                else if (self.current_step() === 7) {
-                    self.getPosition();
-                    self.stage(self.current_step());
-                }
-            self.increaseStep();
             }
+            else if (self.current_step() < 7 && self.current_step() >0) {
+                self.stage(self.current_step());
+                self.sendToPy(self.current_step());
+            }
+            else if (self.current_step() === 7) {
+                self.getPosition();
+                self.stage(self.current_step());
+            }
+            self.increaseStep();
+        }
             /*            OctoPrint.control.sendGcode(self.gcode_cmds());
                         self.gcode_cmds([]);*/
 
 
-        }
+
 
         self.getPosition = function() {
 			$.ajax({
@@ -78,6 +77,7 @@ $(function() {
                         // self.tempPos([data.x, data.y])
                         self.offsetTX(data.x);
                         self.offsetTY(data.y);
+                        self.klipperOffset(self.offsetTX(), self.offsetTY(), self.offsetTZ());
                     } else if (!data.success) {
                         self.offsetTZ(40);
                     }
@@ -152,6 +152,10 @@ $(function() {
         self.increaseStep = function() {
             var currentValue = self.current_step();
             self.current_step(currentValue + 1);
+        }
+
+        self.klipperOffset = function(x, y, z) {
+            self.klipperOffsetString(`SET_GCODE_OFFSET X=${x} Y=${y} Z=${z}`)
         }
 
 /*
@@ -233,7 +237,8 @@ $(function() {
             self.currentTool(0);
             self.moveDis([2, 2]);
             self.gcode_cmds([]);
-            self.webcamUrl(self.settings.webcam_streamUrl());
+            self.webcamUrl(self.settings.webcam_snapshotUrl());
+            self.klipperOffset(self.offsetTX(), self.offsetTY(), self.offsetTZ());
 
         }
 
@@ -242,6 +247,7 @@ $(function() {
             self.offsetTY(self.settings.settings.plugins.tpc.tool0.y());
             self.offsetTZ(self.settings.settings.plugins.tpc.tool0.z());
             self.feed_rate(self.settings.settings.plugins.tpc.feed_rate());
+            self.klipperOffset(self.offsetTX(), self.offsetTY(), self.offsetTZ());
             //self.currentTool(self.settings.settings.plugins.tpc.currentTool());
         }
         self.onEventToolChange = function (payload) {
@@ -268,6 +274,6 @@ $(function() {
         ["settingsViewModel"],
 
         // Finally, this is the list of selectors for all elements we want this view model to be bound to.
-        ["#tab_plugin_tpc", "#wizard_plugin_corewizard_webcam"]
+        ["#tab_plugin_tpc", "#wizard_plugin_corewizard_webcam", "#settings_plugin_tpc"]
     ]);
 });

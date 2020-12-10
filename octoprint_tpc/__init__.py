@@ -51,7 +51,10 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			tool2=dict(x=3, y=2, z=-0.2),
 			tool3=dict(x=2, y=1, z=-0.5),
 			# take tool
-			takeTool="T{}"
+			takeTool="T{}",
+			# klipperOffsetString
+			klipperOffsetString=""
+
 		)
 
 	def get_template_configs(self):
@@ -159,9 +162,11 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 
 			self.xyCamera = self._settings.get(["camera"])
 
+			self._printer.commands("G90")
+			self._printer.commands("G1 X323 F1200")
+			self._printer.commands("G1 Y191 F1200")
 
-
-			self._printer.commands("T2")
+			# self._printer.commands("T2")
 
 
 		elif step == "1":
@@ -170,10 +175,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			# position the nozzle above the camera #
 			########################################
 			# TODO: printer command aus settings
-
-			self._printer.commands("G90")
-			self._printer.commands("G1 X323 F1200")
-			self._printer.commands("G1 Y191 F1200")
+			self._printer.commands("SET_GCODE_OFFSET X=0 Y=0")
 			self._printer.commands("M400")
 
 			self._printer.commands("M114")
