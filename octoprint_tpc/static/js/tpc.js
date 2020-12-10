@@ -49,7 +49,7 @@ $(function() {
             if (self.current_step() === 0){
                 self.nozzle_position(self.webcamUrl());
             }
-            else if (self.current_step() < 7 && self.current_step() >0) {
+            if (self.current_step() < 7 && self.current_step() >=0) {
                 self.stage(self.current_step());
                 self.sendToPy(self.current_step());
             }
