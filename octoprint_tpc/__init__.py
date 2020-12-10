@@ -145,7 +145,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 	def saveOffset(self):
 		# SET_GCODE_OFFSET [X=<pos>] [Y=<pos>] [Z=<pos>] [MOVE=1 [MOVE_SPEED=<speed>]]
 		self._printer.commands("SET_GCODE_OFFSET X={} Y={}".format(self.offset[0], self.offset[1]))
-		self._printer.commands("SAVE_CONFIG")
+		# self._printer.commands("SAVE_CONFIG")
 
 	def calibration(self, step):
 
@@ -239,7 +239,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 
 			self.exOffset = oC.calcOffset(self.xyr0, self.xyr1, self._settings.get(["camerastep"]), self.resolution)
 			self.offset = self.tempOffset + self.exOffset
-			self.offset = np.round(self.offset, 2)
+			self.offset = -np.round(self.offset, 2)
 			# aus xc400-xc300 => +xc = 100 damit bewegt sich die Nozzle im Bild mit 100px/mm
 
 			# die Annahme die getroffen werden muss ist, dass die Aufnahme bei einem Offset von x0y0 sich genau in
