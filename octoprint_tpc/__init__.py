@@ -170,6 +170,22 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 
 			# self._printer.commands("T2")
 
+			# t0
+			# SET_GCODE_OFFSET
+			# X = 15.59
+			# Y = -21.17
+			#
+			# t1
+			# SET_GCODE_OFFSET
+			# X = 15.77
+			# Y = -21.1
+			#
+			# t2
+			# SET_GCODE_OFFSET
+			# X = -10.78
+			# Y = -22.67
+
+
 
 		elif step == "1":
 			########################################
