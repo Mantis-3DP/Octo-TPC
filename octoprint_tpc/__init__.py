@@ -163,7 +163,8 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			self.xyCamera = self._settings.get(["camera"])
 
 			self._printer.commands("G90")
-			self._printer.commands("G1 X323 F1200")
+			self._printer.commands("G1 Y150 F1200")
+			self._printer.commands("G1 X300 F1200")
 			self._printer.commands("G1 Y191 F1200")
 
 			# self._printer.commands("T2")

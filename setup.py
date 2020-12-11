@@ -33,7 +33,7 @@ plugin_url = "https://github.com/Mantis-3DP/Octoprint-Tpc"
 plugin_license = "AGPLv3"
 
 # Any additional requirements besides OctoPrint should be listed here
-plugin_requires = ["numpy>=1.19.4", "opencv-python>=4.4.0.46"]
+plugin_requires = ["numpy~=1.19.4", "opencv-python>=4.4.0.46"]
 
 ### --------------------------------------------------------------------------------------------------------------------
 ### More advanced options that you usually shouldn't have to touch follow after this point
