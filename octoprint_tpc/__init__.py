@@ -166,6 +166,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			self._printer.commands("G1 Y150 F1200")
 			self._printer.commands("G1 X300 F1200")
 			self._printer.commands("G1 Y191 F1200")
+			self._printer.commands("M400")
 
 			# self._printer.commands("T2")
 
