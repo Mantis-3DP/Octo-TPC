@@ -28,8 +28,8 @@ def calcOffset(xy0, xy1, camerastep, resolution):
 	matTransBack[1, 2] = -pos0[1]
 
 	# Scale
-	scaleTool = np.linalg.norm(v0)
-	scaleCamera = np.linalg.norm(v1)  # length vector the tool moved above the camera
+	scaleTool = np.linalg.norm(v0[0:2])
+	scaleCamera = np.linalg.norm(v1[0:2])  # length vector the tool moved above the camera
 
 
 	matScale = np.eye(3, dtype=float)
