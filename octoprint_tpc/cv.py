@@ -143,17 +143,17 @@ def position(webcamUrl):
 	im , width, height = saveFrame(webcamUrl)
 	keypoints = createDetector().detect(im)
 	if len(keypoints) == 1:
-		xyr = np.array(np.around(keypoints[0].pt, 0), np.around(keypoints[0].size / 2, 0))
+		xyr = np.array(np.around(keypoints[0].pt, 0))
 		print(xyr)
 		text = "locating position successful"
 		success = True
 	elif len(keypoints) > 1:
-		xyr = [0, 0, 0]
+		xyr = [0, 0]
 
 		text = "multiple positions found, check your settings width={} height={}".format(width, height)
 		success = False
 	elif len(keypoints) == 0:
-		xyr = [0, 0, 0]
+		xyr = [0, 0]
 
 		text = "no position found, check your settings: width={} height={}".format(width, height)
 		success = False
