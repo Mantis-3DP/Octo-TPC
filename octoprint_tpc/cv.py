@@ -166,5 +166,5 @@ if __name__ == '__main__':
     # i.e.  python this_script.py
     #
     # this block will not be executed when this is import'ed
-	webcamUrl ='http://192.168.178.26:8081/video.mjpg'
+	webcamUrl ='http://192.168.178.33/webcam/?action=stream'
 	findValues(webcamUrl)
