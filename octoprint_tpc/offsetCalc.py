@@ -7,7 +7,9 @@ def calcOffset(xy0, resolution):
 	# damit rechne ich einfach Abstand vom Mittelpunkt
 
 	midpoint = np.array(resolution) / 2
-	offset = (midpoint - np.array(xy0)) * 0.03  # mm/px
+
+	offset = (np.array(xy0) - midpoint) * 0.03  # mm/px
+
 	print(offset)
 	return offset
 
@@ -18,7 +20,5 @@ if __name__ == '__main__':
 	#
 	# this block will not be executed when this is import'ed
 
-	xy0 = [0, 0]
-	xy1 = [640, 80]
-	camerastep = dict(x=2, y=2)
+	xy0 = [322, 240]
 	calcOffset(xy0, resolution=[640, 480])

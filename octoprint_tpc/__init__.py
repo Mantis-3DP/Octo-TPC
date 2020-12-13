@@ -116,9 +116,10 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 	def on_event(self, event, payload):
 		# TODO: instead search for M114 in terminal output
 		if event == "PositionUpdate":
-			self.x: float = payload["x"]
-			self.y: float = payload["y"]
-			self.z: float = payload["z"]
+			x: float = payload["x"]
+			y: float = payload["y"]
+			z: float = payload["z"]
+			self.posUpdate = np.array([x, y, z])
 			self._logger.info("X" + str(payload["x"]) + " Y" + str(payload["y"]) + " Z" + str(payload["z"]))
 
 	# else:
@@ -133,11 +134,10 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 
 		# offset[0] = self._settings.get([str(choice) + ".x"])
 		# offset[1] = self._settings.get([str(choice) + ".y"])
-		feed_rate = self._settings.get(["feed_rate"])
 
 		# commands
 		# self._printer.commands(self._settings.get(["takeTool".format(toolnumber)]))  # settings string
-		self._printer.commands("G1 X{} Y{} F{}".format(offset[0], offset[1], feed_rate))
+		self._printer.commands("G1 X{} Y{} F{}".format(offset[0], offset[1], self.feed_rate))
 		self._printer.commands("G90")
 		self._printer.commands("M400")
 		return offset[0:2]
@@ -153,6 +153,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			self.xyr0 = np.zeros([2])
 			self.xyr1 = np.zeros([2])
 			self.offset = np.zeros([2])
+			self.feed_rate = self._settings.get(["feed_rate"])
 
 			self.tempOffset = np.zeros([2])
 			self.exOffset = np.zeros([2])
@@ -160,12 +161,13 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			np.append(self.stepsTaken, step)
 			self.resolution = np.zeros([2])
 
-			self.xyCamera = self._settings.get(["camera"])
+			xyCamera = self._settings.get(["camera"])
+			self.posCamera = np.array([xyCamera["x"], xyCamera["y"]])
 
 			self._printer.commands("G90")
-			self._printer.commands("G1 Y150 F1200")
-			self._printer.commands("G1 X300 F1200")
-			self._printer.commands("G1 Y191 F1200")
+			self._printer.commands("G1 Y150 {}".format(self.feed_rate))
+			self._printer.commands("G1 X300")
+			self._printer.commands("G1 Y191")
 			self._printer.commands("M400")
 
 			# self._printer.commands("T2")
@@ -197,10 +199,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			self._printer.commands("M400")
 
 			self._printer.commands("M114")
-
-			self._logger.info(self.xyCamera["x"])
-			self._logger.info(self.xyCamera["y"])
-
+			self.savePos = self.posUpdate
 		# self.x = 265
 		# self.y = 200
 		# das Tool steht vor und etwas nach rechts
@@ -219,9 +218,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			# hier mit will ich die Distanz zwischen der Momentanen Position der Camera relativ zur Aufnahme und der neuen
 			# Position des Tools
 
-			self.tempOffset[0] = float(self.xyCamera["x"]) - self.x
-			self.tempOffset[1] = float(self.xyCamera["y"]) - self.y
-			self._logger.info(self.tempOffset)
+
 			# Nun weiß ich, dass bei einem offset von x5 y20 die Nozzle an der Position xc300 yc150 auf Caera zu sehen
 			# ist. Das ist die Translation vom 0 Punkt
 
@@ -254,9 +251,12 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			# self._logger.info(self.xyr0)
 			# self.xyr1 = self.xyr0 + [50, 50]
 			# self._logger.info(self.xyr1)
+			# self.tempOffset = self.posCamera - self.savePos
 
-			self.exOffset = oC.calcOffset(self.xyr0, self.resolution)
-			self.offset = -np.round(self.tempOffset + self.exOffset, 2)
+			exOffset = oC.calcOffset(self.xyr0, self.resolution)
+			# self.offset = np.round(self.tempOffset + self.exOffset, 3)
+
+			self.offset = self.posCamera - self.savePos + exOffset
 
 			# aus xc400-xc300 => +xc = 100 damit bewegt sich die Nozzle im Bild mit 100px/mm
 
