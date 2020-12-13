@@ -162,7 +162,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			self.resolution = np.zeros([2])
 
 			xyCamera = self._settings.get(["camera"])
-			self.posCamera = np.array([xyCamera["x"], xyCamera["y"]])
+			self.posCamera = np.array([float(xyCamera["x"]), float(xyCamera["y"])])
 
 
 			# self._printer.commands("T2")
