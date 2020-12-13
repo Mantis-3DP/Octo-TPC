@@ -164,11 +164,6 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			xyCamera = self._settings.get(["camera"])
 			self.posCamera = np.array([xyCamera["x"], xyCamera["y"]])
 
-			self._printer.commands("G90")
-			self._printer.commands("G1 Y150 {}".format(self.feed_rate))
-			self._printer.commands("G1 X300")
-			self._printer.commands("G1 Y191")
-			self._printer.commands("M400")
 
 			# self._printer.commands("T2")
 
@@ -199,7 +194,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			self._printer.commands("M400")
 
 			self._printer.commands("M114")
-			self.savePos = self.posUpdate
+
 		# self.x = 265
 		# self.y = 200
 		# das Tool steht vor und etwas nach rechts
@@ -212,6 +207,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 
 		elif step == "2":
 			# TODO: redo previous step, if locating nozzle was not successful
+			self.savePos = self.posUpdate
 			self.xyr0, success, width, height, text = multi.position(self.webcamUrl)
 			self.resolution = [width, height]
 			self._logger.info(text)
