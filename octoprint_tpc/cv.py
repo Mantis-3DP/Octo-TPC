@@ -34,7 +34,7 @@ def putText(frame, text, color=(0, 0, 255), offsetx=0, offsety=0,
 def findValues(webcamUrl):
 	# Trackba
 	cv2.namedWindow("Video")
-	cv2.createTrackbar("minThreshold", "Video", 10, 100,nothing)
+	cv2.createTrackbar("minThreshold", "Video", 10, 150,nothing)
 	cv2.createTrackbar("maxThreshold", "Video", 150, 255,nothing)
 	cv2.createTrackbar("C", "Video", 0, 255,nothing)
 	cv2.createTrackbar("minArea", "Video", 100, 200,nothing)
@@ -94,7 +94,7 @@ def findValues(webcamUrl):
 
 
 
-def createDetector(minThreshold=10, maxThreshold=200, minArea=100, minCircularity=0.55, minConvexity=0.55, minInertiaRatio=0.55):
+def createDetector(minThreshold=115, maxThreshold=200, minArea=100, minCircularity=0.55, minConvexity=0.55, minInertiaRatio=0.55):
 	# Setup SimpleBlobDetector parameters.
 	params = cv2.SimpleBlobDetector_Params()
 	params.minThreshold = minThreshold # Change thresholds
