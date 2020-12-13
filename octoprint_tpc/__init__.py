@@ -229,7 +229,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 				self._logger.info("No Point recognized")
 			np.append(self.stepsTaken, step)
 
-		elif step == "3":
+		elif step == "60":
 			self._printer.commands("G91")
 			self.toolToOffset("camerastep")
 			np.append(self.stepsTaken, step)
@@ -237,7 +237,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 		# self.x = 267
 		# self.y = 202
 
-		elif step == "4":
+		elif step == "70":
 			# TODO: Schritt zurück, wenn nozzle nicht gefunden. Dann neu positionieren, M114 machen,
 			#  um dann neue camerastep zu erstellen
 			self.xyr1, success, _, _, _ = multi.position(self.webcamUrl)
@@ -247,7 +247,7 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 		# aus dem Vektor von xc300yc150 zu xc400 yc250 lässt sich die Rotation und pixel pro mm fahrt bestimmen
 
 
-		elif step == "5":
+		elif step == "3":
 
 			# TODO: das hier muss anders. so kann man das nicht prüfen
 
@@ -255,9 +255,9 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			# self.xyr1 = self.xyr0 + [50, 50]
 			# self._logger.info(self.xyr1)
 
-			self.exOffset = oC.calcOffset(self.xyr0, self.xyr1, self._settings.get(["camerastep"]), self.resolution)
-			self.offset = self.tempOffset + self.exOffset
-			self.offset = -np.round(self.offset, 2)
+			self.exOffset = oC.calcOffset(self.xyr0, self.resolution)
+			self.offset = -np.round(self.tempOffset + self.exOffset, 2)
+
 			# aus xc400-xc300 => +xc = 100 damit bewegt sich die Nozzle im Bild mit 100px/mm
 
 			# die Annahme die getroffen werden muss ist, dass die Aufnahme bei einem Offset von x0y0 sich genau in
