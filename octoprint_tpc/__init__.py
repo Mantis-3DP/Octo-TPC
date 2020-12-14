@@ -169,13 +169,13 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 
 			# t0
 			# SET_GCODE_OFFSET
-			# X = 15.59
-			# Y = -21.17
-			#
-			# t1
+			# X = -16.3
+			# Y = 21.55
+			# #
+			# # t1
 			# SET_GCODE_OFFSET
-			# X = 15.77
-			# Y = -21.1
+			# X = -15.94
+			# Y = 21.57
 			#
 			# t2
 			# SET_GCODE_OFFSET
@@ -249,10 +249,11 @@ class TpcPlugin(octoprint.plugin.SettingsPlugin,
 			# self._logger.info(self.xyr1)
 			# self.tempOffset = self.posCamera - self.savePos
 
-			exOffset = oC.calcOffset(self.xyr0, self.resolution)
+			# exOffset = oC.calcOffset(self.xyr0, self.resolution)
 			# self.offset = np.round(self.tempOffset + self.exOffset, 3)
 
-			self.offset = self.posCamera[0:2] - self.savePos[0:2] + exOffset[0:2]
+			# self.offset = self.posCamera[0:2] - self.savePos[0:2] + exOffset[0:2]
+			self.offset = self.posCamera[0:2] - self.savePos[0:2] + (self.xyr0[0:2] * 0.03)
 
 			# aus xc400-xc300 => +xc = 100 damit bewegt sich die Nozzle im Bild mit 100px/mm
 

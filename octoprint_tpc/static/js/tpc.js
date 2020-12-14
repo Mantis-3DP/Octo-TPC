@@ -41,24 +41,46 @@ $(function() {
         self.webcamUrl = ko.observable();
         self.klipperOffsetString = ko.observable();
 
+        // nochmal neu
+
+
 
 // onDataUpdaterPluginMessage
 
-        self.start_calibration = function() {
-            //self.gcode_cmds.push("G28");
-            if (self.current_step() === 0){
-                self.nozzle_position(self.webcamUrl());
+      self.start_calibration = function() {
+          //self.gcode_cmds.push("G28");
+          if (self.current_step() === 0) {
+              self.nozzle_position(self.webcamUrl());
+          }
+          if (self.current_step() < 7 && self.current_step() >= 0) {
+              self.stage(self.current_step());
+              self.sendToPy(self.current_step());
+          } else if (self.current_step() === 7) {
+              self.getPosition();
+              self.stage(self.current_step());
+          }
+          self.increaseStep();
+      }
+
+/*        self.startCalibration = function() {
+
+            switch (self.current_step()) {
+                case 0:
+
+
+                    break;
+                case 1:
+                    break;
+                case 2:
+                    break;
+                case 3:
+                    break;
+                default:
+                    // hello
             }
-            if (self.current_step() < 7 && self.current_step() >=0) {
-                self.stage(self.current_step());
-                self.sendToPy(self.current_step());
-            }
-            else if (self.current_step() === 7) {
-                self.getPosition();
-                self.stage(self.current_step());
-            }
-            self.increaseStep();
-        }
+            self.increaseStep()
+        }*/
+
             /*            OctoPrint.control.sendGcode(self.gcode_cmds());
                         self.gcode_cmds([]);*/
 
@@ -96,7 +118,6 @@ $(function() {
 
         self.stop_calibration = function() {
             self.started(false);
-            self.stage("Start");
             self.current_step(0);
             self.offsetTX(self.settings.settings.plugins.tpc.tool0.x());
             self.offsetTY(self.settings.settings.plugins.tpc.tool0.y());
@@ -254,7 +275,9 @@ $(function() {
             self.currentTool(payload["new"])
             //self.currentTool(self.settings.settings.plugins.tpc.currentTool());
         }
+        self.onEventPositionUpdate = function(payload) {
 
+        }
 
     }
 

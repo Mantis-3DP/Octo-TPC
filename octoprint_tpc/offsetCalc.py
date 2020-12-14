@@ -6,7 +6,7 @@ def calcOffset(xy0, resolution):
 	# => 14.1mm/480px = 0.029375 ungefähr 0.03mm/px
 	# damit rechne ich einfach Abstand vom Mittelpunkt
 
-	midpoint = np.array(resolution) / 2
+	midpoint = [0, 0]
 
 	offset = (np.array(xy0) - midpoint) * 0.03  # mm/px
 
